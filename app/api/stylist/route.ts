@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 const requestWindow = new Map<string, { count: number; resetAt: number }>();
 const MAX_REQUESTS = 8;
 const WINDOW_MS = 60 * 60 * 1000;
+const REQUEST_TIMEOUT_MS = 45_000;
+const MAX_RETRIES = 2;
 
 const requestSchema = z.object({
   occasion: z.string().min(1).max(80),
@@ -61,44 +63,78 @@ export async function POST(request: Request) {
       },
       { status: 503 },
     );
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const apiKey = key;
+  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.6-flash";
   const context: OutfitContext = parsed.data;
   const prompt = `You are Stylebender, a decisive UK menswear stylist. Return JSON only matching this schema: {"verdict":"Wear|Change One Piece|Elevate|Skip","title":"short title","summary":"concise explanation","reasons":["up to 3 reasons"],"pieces":[{"name":"garment","owned":true,"note":"styling note"}]}. Occasion: ${context.occasion}. Budget: ${context.budget ?? "£150–£300"}. Confirmed styles: ${context.styles.join(", ") || "not yet confirmed"}. Owned wardrobe items: ${context.wardrobe.join(", ") || "none provided"}. User request: ${context.request ?? "Recommend one strong outfit"}. Mark a piece owned only when it matches an item in the supplied wardrobe. Never claim live prices, weather, physical fit, or real product availability.`;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15_000);
-  const result = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.7,
-          maxOutputTokens: 800,
-        },
-      }),
-      cache: "no-store",
-      signal: controller.signal,
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const startedAt = Date.now();
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      thinkingConfig: { thinkingLevel: "low" },
+      temperature: 0.7,
+      maxOutputTokens: 4096,
     },
-  ).finally(() => clearTimeout(timeout)).catch(() => null);
+  });
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  const retryDelay = (response: Response, attempt: number) => {
+    const retryAfter = response.headers.get("retry-after");
+    const fromHeader = retryAfter ? Number(retryAfter) * 1000 : 0;
+    const exponential = Math.min(8_000, 750 * 2 ** attempt);
+    const jitter = Math.floor(Math.random() * 400);
+    return Math.min(8_000, Math.max(0, fromHeader || exponential + jitter));
+  };
+  async function requestModel(requestedModel: string) {
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+      if (Date.now() - startedAt >= REQUEST_TIMEOUT_MS) return null;
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${requestedModel}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body,
+        cache: "no-store",
+        signal: controller.signal,
+      }).catch(() => null);
+      console.info("[Gemini] request attempt", { model: requestedModel, attempt: attempt + 1, status: response?.status ?? "timeout" });
+      if (!response || response.status !== 503 || attempt === MAX_RETRIES) return response;
+      const delay = retryDelay(response, attempt);
+      if (Date.now() - startedAt + delay >= REQUEST_TIMEOUT_MS) return response;
+      await wait(delay);
+    }
+    return null;
+  }
+  let usedModel = model;
+  let result = await requestModel(model);
+  if (result?.status === 503 && fallbackModel !== model) {
+    console.info("[Gemini] primary model unavailable; trying fallback", { primary: model, fallback: fallbackModel });
+    usedModel = fallbackModel;
+    result = await requestModel(fallbackModel);
+  }
+  clearTimeout(timeout);
   if (!result) {
+    console.error("[Gemini] request timed out", { model: usedModel, timeoutMs: REQUEST_TIMEOUT_MS, category: "timeout" });
     return NextResponse.json({ status: "error", error: "Gemini timed out. Try again shortly." }, { status: 504 });
   }
   if (!result.ok) {
     const upstream = await result.json().catch(() => null) as { error?: { message?: string } } | null;
     console.error("[Gemini] upstream request failed", {
       status: result.status,
-      model,
+      model: usedModel,
+      attempts: result.status === 503 ? MAX_RETRIES + 1 : 1,
+      category: result.status === 503 ? "capacity" : "upstream",
       error: upstream?.error?.message ?? "No error body returned",
     });
     const message = result.status === 401 || result.status === 403
       ? "Gemini rejected the API key. Check that it is an active Gemini API key for this project."
       : result.status === 404
-        ? `Gemini model '${model}' is unavailable. Update GEMINI_MODEL.`
+          ? `Gemini model '${usedModel}' is unavailable. Update GEMINI_MODEL.`
         : result.status === 429
           ? "Gemini quota or rate limit reached. Try again later."
+          : result.status === 503
+            ? "Gemini is temporarily busy. Please try again in a moment."
           : "Gemini could not complete this styling request. Try again shortly.";
     return NextResponse.json(
       {
@@ -106,20 +142,25 @@ export async function POST(request: Request) {
         error: message,
         ...(process.env.NODE_ENV !== "production" && upstream?.error?.message ? { detail: upstream.error.message } : {}),
       },
-      { status: result.status === 429 ? 429 : 502 },
+      { status: result.status === 401 || result.status === 403 ? 502 : result.status === 429 || result.status === 503 ? result.status : 502 },
     );
   }
   const payload = (await result.json()) as {
     candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
   };
   const text = payload.candidates?.[0]?.content?.parts?.[0]?.text;
+  const finishReason = payload.candidates?.[0]?.finishReason;
+  if (finishReason === "MAX_TOKENS") {
+    console.error("[Gemini] response exhausted its token budget", { model: usedModel, finishReason });
+    return NextResponse.json({ status: "error", error: "Gemini reached its response limit. Try again with a shorter request." }, { status: 502 });
+  }
   let candidate: unknown = null;
   try { candidate = text ? JSON.parse(text) : null; } catch { candidate = null; }
   const output = responseSchema.safeParse(candidate);
   if (!output.success) {
     console.error("[Gemini] response did not match styling schema", {
-      model,
-      finishReason: payload.candidates?.[0]?.finishReason,
+      model: usedModel,
+      finishReason,
       responsePreview: text?.slice(0, 1200) ?? "No text returned",
       issues: output.error.issues,
     });

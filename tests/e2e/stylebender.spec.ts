@@ -77,7 +77,7 @@ test.describe('Stylebender guest shell', () => {
     await page.goto('/');
     await page.getByRole('button', { name: /Get one strong look/i }).click();
     await page.getByRole('button', { name: /Generate with Gemini/i }).click();
-    await expect(page.getByText(/Gemini is unavailable/i)).toBeVisible();
+    await expect(page.getByText(/Gemini is not configured/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /^Save$/i })).toBeDisabled();
   });
 

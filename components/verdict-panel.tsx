@@ -16,6 +16,7 @@ export function VerdictPanel({
   const [saved, setSaved] = useState(false);
   const [result, setResult] = useState<OutfitVersion | null>(null);
   const [status, setStatus] = useState("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   useEffect(() => {
     const current = readCurrentOutfit();
     setResult(current?.context.occasion === outfitContext.occasion ? current : null);
@@ -23,6 +24,7 @@ export function VerdictPanel({
   }, [outfitContext.occasion]);
   async function generate() {
     setStatus("loading");
+    setErrorMessage(null);
     try {
       const response = await fetch("/api/stylist", {
         method: "POST",
@@ -32,13 +34,14 @@ export function VerdictPanel({
         }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error);
+      if (!response.ok) throw new Error(payload.error ?? "Gemini could not complete this request.");
       const next: OutfitVersion = { ...payload.data, id: crypto.randomUUID(), createdAt: Date.now(), source: "verdict", context: outfitContext, version: 1, priceType: "illustrative" };
       setCurrentOutfit(next);
       setResult(next);
       setVerdict(payload.data.verdict);
       setStatus("ready");
-    } catch {
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Gemini could not complete this request.");
       setStatus("error");
     }
   }
@@ -75,14 +78,11 @@ export function VerdictPanel({
                 <Loader2 className="inline mr-2 animate-spin" size={14} />
                 Thinking…
               </>
-            ) : (
-              "Generate with Gemini"
-            )}
+            ) : status === "error" ? "Retry Gemini" : "Generate with Gemini"}
           </button>
           {status === "error" && (
             <p className="text-xs text-amber-200 mb-4">
-              Gemini is unavailable or returned an error. The local demo verdict
-              remains available.
+              {errorMessage ?? "Gemini is unavailable or returned an error."}
             </p>
           )}
           <div className="flex flex-wrap gap-2">
