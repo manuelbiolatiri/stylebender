@@ -6,23 +6,43 @@ import type { ProductReference } from "@/lib/outfit";
  * and product-feed terms are approved.
  */
 export const localCatalog: ProductReference[] = [
-  { id: "local-forest-overshirt", source: "local-catalog", name: "Forest overshirt", image: "/london-menswear-editorial.jpg" },
-  { id: "local-charcoal-blazer", source: "local-catalog", name: "Charcoal tailored blazer", image: "/stylebender-hero-campaign.jpg" },
-  { id: "local-ivory-shirt", source: "local-catalog", name: "Ivory textured shirt", image: "/sunday-menswear-editorial.jpg" },
-  { id: "local-charcoal-trousers", source: "local-catalog", name: "Charcoal tailored trousers", image: "/menswear-outfit-flatlay.jpg" },
-  { id: "local-leather-loafers", source: "local-catalog", name: "Leather loafers", image: "/evening-menswear-editorial.jpg" },
+  { id: "local-forest-overshirt", source: "local-catalog", name: "Forest overshirt", image: "/demo-wardrobe/forest-overshirt.png" },
+  { id: "local-navy-blazer", source: "local-catalog", name: "Navy tailored blazer", image: "/demo-wardrobe/navy-blazer.png" },
+  { id: "local-ivory-shirt", source: "local-catalog", name: "Ivory Oxford shirt", image: "/demo-wardrobe/ivory-oxford.png" },
+  { id: "local-charcoal-trousers", source: "local-catalog", name: "Charcoal tailored trousers", image: "/demo-wardrobe/charcoal-trousers.png" },
+  { id: "local-brown-loafers", source: "local-catalog", name: "Dark brown penny loafers", image: "/demo-wardrobe/brown-loafers.png" },
 ];
+
+export type GarmentCategory = "outerwear" | "shirt" | "knitwear" | "trousers" | "shoes" | "accessories" | "other";
 
 function normalise(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9 ]/g, " ");
 }
 
+export function inferGarmentCategory(value: string): GarmentCategory {
+  const text = normalise(value);
+  if (/blazer|jacket|overshirt|coat|outerwear/.test(text)) return "outerwear";
+  if (/shirt|oxford|tee|t shirt|polo/.test(text)) return "shirt";
+  if (/knit|knitwear|sweater|jumper|cardigan/.test(text)) return "knitwear";
+  if (/trouser|pants|chino|jean|shorts/.test(text)) return "trousers";
+  if (/loafer|shoe|trainer|sneaker|boot/.test(text)) return "shoes";
+  if (/tie|belt|scarf|watch|bag/.test(text)) return "accessories";
+  return "other";
+}
+
+const colourWords = new Set(["black", "brown", "burgundy", "charcoal", "cream", "forest", "green", "grey", "indigo", "ivory", "navy", "rust", "stone", "white"]);
+
 export function findCatalogProduct(name: string) {
   const query = normalise(name);
   const words = query.split(/\s+/).filter((word) => word.length > 3);
+  const category = inferGarmentCategory(name);
+  const queryColours = words.filter((word) => colourWords.has(word));
   return localCatalog.find((product) => {
     const candidate = normalise(product.name);
-    return words.some((word) => candidate.includes(word));
+    if (category !== inferGarmentCategory(product.name)) return false;
+    if (!words.some((word) => candidate.split(/\s+/).includes(word))) return false;
+    const productColours = candidate.split(/\s+/).filter((word) => colourWords.has(word));
+    return queryColours.length === 0 || queryColours.some((colour) => productColours.includes(colour));
   });
 }
 

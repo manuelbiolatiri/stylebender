@@ -32,6 +32,36 @@ const savedLook = {
 };
 
 test.describe('generation request regressions', () => {
+  test('sends each selected occasion and generates a fresh explicit request', async ({ page }) => {
+    const occasions: string[] = [];
+    await page.route('**/api/stylist', async (route) => {
+      const body = JSON.parse(route.request().postData() ?? '{}') as { occasion?: string };
+      occasions.push(body.occasion ?? '');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ...generatedLook, data: { ...generatedLook.data, title: `${body.occasion} look` } }),
+      });
+    });
+
+    await page.goto('/?view=Discover');
+    await page.getByRole('button', { name: /Church Polished/i }).click();
+    await page.getByRole('button', { name: /Style me for Church/i }).click();
+    await expect(page.getByRole('heading', { name: /Church look/i })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Discover', exact: true }).first().click();
+    await page.getByRole('button', { name: /Office Day Sharp/i }).click();
+    await page.getByRole('button', { name: /Style me for Office Day/i }).click();
+    await expect(page.getByRole('heading', { name: /Office Day look/i })).toBeVisible();
+
+    // An explicit request for the same occasion must still generate a new response,
+    // rather than restoring the previous current outfit.
+    await page.getByRole('button', { name: 'Discover', exact: true }).first().click();
+    await page.getByRole('button', { name: /Style me for Office Day/i }).click();
+    await expect(page.getByRole('heading', { name: /Office Day look/i })).toBeVisible();
+    expect(occasions).toEqual(['Church', 'Office Day', 'Office Day']);
+  });
+
   test('does not regenerate when switching away from and back to Style Me', async ({ page }) => {
     let requestCount = 0;
     await page.route('**/api/stylist', async (route) => {

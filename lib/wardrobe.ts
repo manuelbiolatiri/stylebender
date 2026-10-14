@@ -1,4 +1,5 @@
 import { openDB, type DBSchema } from "idb";
+import { inferGarmentCategory } from "@/lib/products";
 
 export type WardrobeItem = {
   id: string;
@@ -66,12 +67,15 @@ export function findWardrobeMatch(garmentName: string, items?: WardrobeItem[]): 
   const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, " ").trim();
   const target = clean(garmentName);
   const targetWords = target.split(/\s+/).filter((w) => w.length > 2);
+  const targetCategory = inferGarmentCategory(garmentName);
   return list.find((item) => {
     const candidate = clean(item.name);
+    const candidateCategory = inferGarmentCategory(`${item.category} ${item.name}`);
+    if (targetCategory !== "other" && candidateCategory !== "other" && targetCategory !== candidateCategory) return false;
     if (candidate === target) return true;
     if (target.includes(candidate) || candidate.includes(target)) return true;
     const matchCount = targetWords.filter((w) => candidate.includes(w)).length;
-    return matchCount >= Math.min(2, targetWords.length);
+    return matchCount >= Math.max(2, Math.ceil(targetWords.length * 0.6));
   });
 }
 export async function resolvePieceVisual(garmentName: string): Promise<{ url: string; isUser: boolean; item?: WardrobeItem } | null> {

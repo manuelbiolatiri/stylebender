@@ -53,7 +53,7 @@ export function VerdictPanel({
   // Restore current outfit from localStorage on mount or when occasion changes
   useEffect(() => {
     const current = readCurrentOutfit();
-    if (current) {
+    if (!autoGenerate && current) {
       if (!outfitContext.occasion || current.context.occasion === outfitContext.occasion) {
         setResult(current);
         setVerdict(current.verdict ?? "Wear");
@@ -238,7 +238,7 @@ export function VerdictPanel({
                       {image ? (
                         <img src={image} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-ivory/40"><Shirt size={18} /></div>
+                        <div role="img" aria-label={`No image available for ${piece.name}`} className="h-full w-full flex items-center justify-center text-ivory/40"><Shirt size={18} /></div>
                       )}
                     </div>
                     <span className="block min-w-0 text-[9px] leading-3 text-ivory/75 mt-1 line-clamp-2 break-words">{piece.name}</span>
@@ -406,7 +406,7 @@ export function VerdictPanel({
                         {imgSrc ? (
                           <img src={imgSrc} alt={piece.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-forest/40">
+                          <div role="img" aria-label={`No image available for ${piece.name}`} className="w-full h-full flex items-center justify-center text-forest/40">
                             <Shirt size={20} />
                           </div>
                         )}

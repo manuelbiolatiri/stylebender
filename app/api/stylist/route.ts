@@ -2,6 +2,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import type { OutfitContext } from "@/lib/outfit";
 import { auth } from "@/auth";
+import { buildStylistPrompt } from "@/lib/stylist-prompt";
 
 const requestWindow = new Map<string, { count: number; resetAt: number }>();
 const MAX_REQUESTS = Number(process.env.GEMINI_MAX_REQUESTS_PER_HOUR ?? 8);
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
   const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
   const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.6-flash";
   const context: OutfitContext = parsed.data;
-  const prompt = `You are Stylebender, a decisive UK menswear stylist. Return JSON only matching this schema: {"verdict":"Wear|Change One Piece|Elevate|Skip","title":"short title","summary":"concise explanation","reasons":["up to 3 reasons"],"pieces":[{"name":"garment","owned":true,"note":"styling note"}]}. Occasion: ${context.occasion}. Budget: ${context.budget ?? "£150–£300"}. Confirmed styles: ${context.styles.join(", ") || "not yet confirmed"}. Owned wardrobe items: ${context.wardrobe.join(", ") || "none provided"}. User request: ${context.request ?? "Recommend one strong outfit"}. Mark a piece owned only when it matches an item in the supplied wardrobe. Never claim live prices, weather, physical fit, or real product availability.`;
+  const prompt = buildStylistPrompt(context);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const startedAt = Date.now();

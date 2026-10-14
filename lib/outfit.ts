@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { findCatalogProduct } from "./products";
 
 export type ProductReference = {
   id: string;
@@ -80,6 +81,19 @@ export const defaultOutfitContext: OutfitContext = {
   request: "Give me one strong look",
 };
 
+export function normaliseOutfitVisuals(outfit: OutfitVersion): OutfitVersion {
+  return {
+    ...outfit,
+    pieces: outfit.pieces.map((piece) => {
+      if (piece.product?.source !== "local-catalog") return piece;
+      const trustedProduct = findCatalogProduct(piece.name);
+      return trustedProduct
+        ? { ...piece, product: trustedProduct }
+        : { ...piece, product: undefined };
+    }),
+  };
+}
+
 const SAVED_KEY = "stylebender-saved-outfits";
 const CURRENT_KEY = "stylebender-current-outfit";
 
@@ -87,14 +101,14 @@ export function readOutfits(): OutfitVersion[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(localStorage.getItem(SAVED_KEY) ?? "[]");
-    return z.array(outfitSchema).parse(parsed);
+    return z.array(outfitSchema).parse(parsed).map(normaliseOutfitVisuals);
   } catch {
     return [];
   }
 }
 
 export function saveOutfit(outfit: OutfitVersion) {
-  const validated = outfitSchema.parse(outfit);
+  const validated = normaliseOutfitVisuals(outfitSchema.parse(outfit));
   localStorage.setItem(SAVED_KEY, JSON.stringify([validated, ...readOutfits().filter((item) => item.id !== validated.id)].slice(0, 20)));
 }
 
@@ -106,14 +120,14 @@ export function readCurrentOutfit(): OutfitVersion | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(CURRENT_KEY);
-    return raw ? outfitSchema.parse(JSON.parse(raw)) : null;
+    return raw ? normaliseOutfitVisuals(outfitSchema.parse(JSON.parse(raw))) : null;
   } catch {
     return null;
   }
 }
 
 export function setCurrentOutfit(outfit: OutfitVersion) {
-  localStorage.setItem(CURRENT_KEY, JSON.stringify(outfitSchema.parse(outfit)));
+  localStorage.setItem(CURRENT_KEY, JSON.stringify(normaliseOutfitVisuals(outfitSchema.parse(outfit))));
 }
 export function clearCurrentOutfit() {
   localStorage.removeItem(CURRENT_KEY);
