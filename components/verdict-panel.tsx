@@ -10,7 +10,7 @@ import {
   Shirt,
   Sparkles,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   defaultOutfitContext,
   readCurrentOutfit,
@@ -30,11 +30,13 @@ export function VerdictPanel({
   onAction,
   context,
   autoGenerate = false,
+  onAutoGenerateConsumed,
 }: {
   onSave?: () => void;
   onAction: (action: string) => void;
   context?: OutfitContext;
   autoGenerate?: boolean;
+  onAutoGenerateConsumed?: () => void;
 }) {
   const outfitContext = context ?? defaultOutfitContext;
   const occasion = outfitContext.occasion || "your occasion";
@@ -45,6 +47,8 @@ export function VerdictPanel({
   const [swapPieceName, setSwapPieceName] = useState<string | null>(null);
   const [wearConfirmed, setWearConfirmed] = useState(false);
   const [resolvedImages, setResolvedImages] = useState<Record<string, { url: string; isUser: boolean }>>({});
+  const autoGenerateStarted = useRef(false);
+  const generationInFlight = useRef(false);
 
   // Restore current outfit from localStorage on mount or when occasion changes
   useEffect(() => {
@@ -82,12 +86,15 @@ export function VerdictPanel({
 
   // Handle autoGenerate on arrival
   useEffect(() => {
-    if (autoGenerate && status === "idle") {
-      generate();
-    }
-  }, [autoGenerate, status]);
+    if (!autoGenerate || status !== "idle" || autoGenerateStarted.current) return;
+    autoGenerateStarted.current = true;
+    onAutoGenerateConsumed?.();
+    void generate();
+  }, [autoGenerate, onAutoGenerateConsumed, status]);
 
   async function generate(options?: { swapPiece?: string; freshAlternative?: boolean }) {
+    if (generationInFlight.current) return;
+    generationInFlight.current = true;
     setStatus("loading");
     setErrorMessage(null);
     setWearConfirmed(false);
@@ -119,7 +126,7 @@ export function VerdictPanel({
           "stylebender-pending-context",
           JSON.stringify({ ...outfitContext, autoGenerate: true }),
         );
-        const callback = "/?view=Style%20Me";
+        const callback = `/?view=${encodeURIComponent("Style Me")}&occasion=${encodeURIComponent(outfitContext.occasion)}`;
         window.location.assign(`/sign-in?callbackUrl=${encodeURIComponent(callback)}`);
         return;
       }
@@ -154,6 +161,8 @@ export function VerdictPanel({
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Gemini could not complete this request.");
       setStatus("error");
+    } finally {
+      generationInFlight.current = false;
     }
   }
 

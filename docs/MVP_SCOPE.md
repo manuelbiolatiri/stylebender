@@ -23,7 +23,7 @@ Non-goals: real virtual try-on, live retailer prices or checkout, affiliate shop
 - [x] Occasion selection no longer defaults silently to Date Night. Empty selection disables both Style Me entry points; custom occasions remain selectable. Evidence: `app/page.tsx` `startStyling` and disabled CTA paths.
 - [x] One Style Me action starts the Verdict journey and auto-starts generation. The idle Verdict state no longer presents a second Generate button; retry remains available only after an error. Evidence: `app/page.tsx`, `components/verdict-panel.tsx`.
 - [x] Verify live Gemini connectivity with the configured paid credential. A controlled live request returned HTTP 200 on 2026-10-14; the key and response body were withheld. The app still needs an authenticated browser run to verify the full `/api/stylist` journey, coherent pieces, and browser/network secret boundary.
-- [ ] Verify Google sign-in restoration and saved-look persistence across redirect and reload. Current code carries pending context through session storage and saves outfit records to local storage; this requires a real configured-provider browser run.
+- [ ] Verify Google sign-in restoration and saved-look persistence across redirect and reload. The client now restores the canonical `Style Me` state and consumes pending generation once; a real configured-provider browser run remains required for Google OAuth proof.
 - [ ] Add budget-aware usage safeguards. Current request count is capped, but there is no budget/cost policy, durable usage accounting, or explicit user-facing budget state. Define the permitted monthly/request budget, enforce it server-side, and show actionable limit/failure states without exposing provider details.
 
 ### P1 — core journey completion
@@ -36,7 +36,7 @@ Non-goals: real virtual try-on, live retailer prices or checkout, affiliate shop
 
 ### P1 — release hygiene
 
-- [ ] Remove or hide incomplete post-MVP surfaces from primary navigation. Primary navigation must expose only Discover, Wardrobe, Saved and Profile; Try On, Style IQ and other unfinished concepts must remain contextual or out of navigation and must not imply functional MVP capabilities.
+- [x] Remove or hide incomplete post-MVP surfaces from primary navigation. Primary mobile navigation is Discover, Style Me, Wardrobe and Saved; Profile is behind the header avatar. Try On and Style IQ remain out of primary navigation.
 - [ ] Fix test command separation: `yarn test` currently collects Playwright files and fails before tests run. Unit tests must exclude `tests/e2e/**`; Playwright must run via `yarn test:e2e`.
 - [ ] Run typecheck, production build, unit tests and Playwright at mobile, tablet and desktop widths.
 - [ ] Complete accessibility checks for disabled/selected occasion states, loading/error recovery, keyboard navigation and meaningful labels.
@@ -46,8 +46,10 @@ Non-goals: real virtual try-on, live retailer prices or checkout, affiliate shop
 - PASS: `yarn typecheck`.
 - PASS: `yarn test` after separating the Playwright exclusion; no unit test files are currently present.
 - PASS: `yarn build`.
-- NOT RUN: `yarn test:e2e`; requires a running app and configured auth/provider environment.
+- PASS: focused mocked generation-regression Playwright coverage verifies one request across tab switches, zero requests when reopening a saved look, and one request during pending-auth restoration without stale `Verdict` state.
+- PARTIAL: mobile shell screenshots exist in `docs/screenshots/mobile/`, and an earlier focused run passed the 320px, 375px, 390px and 430px shell checks. The latest post-fix run exposed test-harness issues around duplicate desktop/mobile locator matches and wardrobe-tab hydration; this remains open until the suite is rerun cleanly after those assertions are stabilized. Keyboard appearance and device safe-area behavior remain unverified in an emulated native browser.
+- NOT PASS: full legacy `yarn test:e2e` suite contains pre-freeze Verdict/Generate selectors and parallel Next dev-cache races; it is not a valid release signal until those tests are migrated to the frozen Style Me flow and run with a stable server configuration.
 - PASS: controlled live Gemini request returned HTTP 200; key and response withheld.
-- NOT VERIFIED: Google sign-in restoration (Google OAuth ID/secret are empty in local `.env`), saved persistence across a real auth redirect, authenticated full-route Gemini generation, budget safeguards beyond configurable request/token caps, and unfamiliar-user usability target (4/5).
+- NOT VERIFIED: Google sign-in restoration and real authenticated saved persistence through the external Google consent flow, authenticated full-route Gemini generation with the paid credential, durable budget/cost accounting, and unfamiliar-user usability target (4/5). Provider credential names are present in `.env`, but no browser OAuth/paid integration run is claimed by the mocked test suite. The API still has in-memory per-user request caps and output-token caps, but no durable billing budget.
 
 MVP 1.0 cannot be declared complete until every P0 and P1 item above is verified, all automated checks pass, and the three journeys work end-to-end without presenting unfinished functionality as complete.

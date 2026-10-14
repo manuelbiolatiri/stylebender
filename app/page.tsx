@@ -46,7 +46,7 @@ function Nav({
   setActive,
 }: {
   active: string;
-  setActive: (x: string) => void;
+  setActive: (x: string, replace?: boolean, occasionOverride?: string) => void;
 }) {
   const tabs = [
     ["Discover", Compass],
@@ -150,16 +150,17 @@ export default function Home() {
     }
   }
 
-  function setActive(next: string, replace = false) {
+  function setActive(next: string, replace = false, occasionOverride?: string) {
     if (screenRef.current) scrollPositions.current[active] = screenRef.current.scrollTop;
     setActiveState(next);
     if (typeof window !== "undefined") {
       const params = new URLSearchParams();
       if (next !== "Discover") params.set("view", next === "Style Me" ? "Style Me" : next);
-      if (selected) params.set("occasion", selected);
+      const occasion = occasionOverride ?? selected;
+      if (occasion) params.set("occasion", occasion);
       const query = params.toString();
       const url = query ? `/?${query}` : "/";
-      window.history[replace ? "replaceState" : "pushState"]({ view: next, occasion: selected }, "", url);
+      window.history[replace ? "replaceState" : "pushState"]({ view: next, occasion }, "", url);
     }
   }
 
@@ -174,7 +175,7 @@ export default function Home() {
     if (!target) return;
     setSelected(target);
     setAutoGenerateVerdict(true);
-    setActive("Style Me");
+    setActive("Style Me", false, target);
   }
 
   // Load URL state & popstate listener
@@ -213,7 +214,7 @@ export default function Home() {
         setProfileContext(pending);
         if (pending.autoGenerate) {
           setAutoGenerateVerdict(true);
-          setActiveState("Verdict");
+          setActiveState("Style Me");
         }
         sessionStorage.removeItem("stylebender-pending-context");
       }
@@ -509,6 +510,7 @@ export default function Home() {
             setSelected={setSelected}
             context={{ ...profileContext, occasion: selected }}
             autoGenerate={autoGenerateVerdict}
+            onAutoGenerateConsumed={() => setAutoGenerateVerdict(false)}
           />
           )}
 
@@ -528,12 +530,14 @@ function Placeholder({
   setSelected,
   context,
   autoGenerate,
+  onAutoGenerateConsumed,
 }: {
   active: string;
-  setActive: (x: string) => void;
+  setActive: (x: string, replace?: boolean, occasionOverride?: string) => void;
   setSelected: (occasion: string) => void;
   context: OutfitContext;
   autoGenerate: boolean;
+  onAutoGenerateConsumed: () => void;
 }) {
   return (
     <main className="px-6 lg:px-20 pt-6 lg:pt-16 max-w-6xl">
@@ -563,6 +567,7 @@ function Placeholder({
           onAction={setActive}
           context={context}
           autoGenerate={autoGenerate}
+          onAutoGenerateConsumed={onAutoGenerateConsumed}
         />
       ) : active === "Achieve" ? (
         <AchievePanel />
@@ -576,7 +581,8 @@ function Placeholder({
         <SavedPanel
           onOpen={(item) => {
             setSelected(item.context.occasion);
-            setActive("Verdict");
+            onAutoGenerateConsumed();
+            setActive("Style Me", false, item.context.occasion);
           }}
         />
       ) : (

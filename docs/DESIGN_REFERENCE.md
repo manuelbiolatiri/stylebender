@@ -120,8 +120,8 @@ Distinctly Stylebender: authentication is a practical boundary around live AI an
 
 ### Mobile navigation principles
 
-- Keep the current four-item bottom navigation: **Discover, Wardrobe, Saved, Profile**.
-- Do not add Verdict, Achieve, Elevate, Try On or Style IQ as primary nav items. They are contextual steps from a look.
+- Keep the frozen four-item bottom navigation: **Discover, Style Me, Wardrobe, Saved**. Profile is opened from the persistent header avatar.
+- Do not add Verdict as a primary label; it is the internal result state represented by Style Me. Achieve and Elevate remain contextual actions. Try On and Style IQ remain out of primary navigation.
 - Preserve the fixed bottom bar, safe-area padding and touch targets of at least 44px.
 - The active state must be obvious through label, icon and restrained forest tint; do not rely on colour alone.
 - Contextual screens need a clear back path to their parent task and must not strand the user in a modal-like route.

@@ -35,21 +35,23 @@ test.describe('Stylebender mobile app shell', () => {
       await page.waitForTimeout(1800);
       await expect(page.getByRole('heading', { name: /Discover your style/i })).toBeVisible();
 
-      await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Discover' })).toHaveAttribute('aria-current', 'page');
+      const primary = page.getByRole('navigation', { name: 'Primary' });
+      await expect(primary).toBeVisible();
+      await expect(primary.getByRole('button', { name: 'Discover' })).toHaveAttribute('aria-current', 'page');
 
       const shellMetrics = await page.evaluate(() => ({
-        bodyScrollHeight: document.body.scrollHeight,
-        viewportHeight: window.innerHeight,
+        bodyOverflowY: getComputedStyle(document.body).overflowY,
+        htmlOverflowY: getComputedStyle(document.documentElement).overflowY,
         bodyScrollWidth: document.body.scrollWidth,
         viewportWidth: window.innerWidth,
       }));
-      expect(shellMetrics.bodyScrollHeight).toBeLessThanOrEqual(shellMetrics.viewportHeight + 1);
+      expect(shellMetrics.bodyOverflowY).toBe('hidden');
+      expect(shellMetrics.htmlOverflowY).toBe('hidden');
       expect(shellMetrics.bodyScrollWidth).toBeLessThanOrEqual(shellMetrics.viewportWidth + 1);
 
       for (const tab of ['Style Me', 'Wardrobe', 'Saved', 'Discover']) {
-        await page.getByRole('button', { name: tab, exact: true }).click();
-        await expect(page.getByRole('button', { name: tab, exact: true })).toHaveAttribute('aria-current', 'page');
+        await primary.getByRole('button', { name: tab, exact: true }).click();
+        await expect(primary.getByRole('button', { name: tab, exact: true })).toHaveAttribute('aria-current', 'page');
       }
 
       await page.screenshot({ path: `${screenshotDir}/shell-${viewport.width}x${viewport.height}.png`, fullPage: false });
@@ -73,7 +75,9 @@ test.describe('Stylebender mobile app shell', () => {
     await expect(page.getByRole('heading', { name: /Style Me/i })).toBeVisible();
     await page.screenshot({ path: `${screenshotDir}/style-me-390x844.png`, fullPage: false });
 
-    await page.getByRole('button', { name: 'Wardrobe', exact: true }).click();
+    const primary = page.getByRole('navigation', { name: 'Primary' });
+    await primary.getByRole('button', { name: 'Wardrobe', exact: true }).click();
+    await expect(primary.getByRole('button', { name: 'Wardrobe', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: /Build your wardrobe/i })).toBeVisible();
     await page.getByRole('button', { name: /Load Sample Wardrobe/i }).click();
     await expect(page.getByText('Navy hopsack blazer')).toBeVisible();
@@ -85,11 +89,11 @@ test.describe('Stylebender mobile app shell', () => {
     });
     expect(scrollMetrics.scrollHeight).toBeGreaterThan(scrollMetrics.clientHeight);
     await page.locator('.mobile-screen-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight; });
-    await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
+    await expect(primary).toBeVisible();
     await page.screenshot({ path: `${screenshotDir}/wardrobe-long-scroll-390x844.png`, fullPage: false });
 
-    await page.getByRole('button', { name: 'Saved', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Saved', exact: true })).toHaveAttribute('aria-current', 'page');
+    await primary.getByRole('button', { name: 'Saved', exact: true }).click();
+    await expect(primary.getByRole('button', { name: 'Saved', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: /The evening tonal contrast/i })).toBeVisible();
     await page.screenshot({ path: `${screenshotDir}/saved-390x844.png`, fullPage: false });
   });
