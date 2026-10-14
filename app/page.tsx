@@ -109,11 +109,16 @@ function Nav({
   );
 }
 export default function Home() {
+  const [showSplash, setShowSplash] = useState(true);
   const [active, setActive] = useState("Discover");
   const [selected, setSelected] = useState("Church");
   const [saved, setSaved] = useState(false);
   const [dna, setDna] = useState(false);
   const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowSplash(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, []);
   useEffect(() => {
     setSaved(localStorage.getItem("stylebender-saved") === "true");
     try {
@@ -127,7 +132,13 @@ export default function Home() {
     localStorage.setItem("stylebender-saved", String(next));
   }
   return (
-    <div className="min-h-screen bg-ivory pb-24 lg:pb-0">
+    <>
+      {showSplash && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#872d38]" role="status" aria-label="Loading Stylebender">
+          <img src="/stylebender-mark.png" alt="Stylebender" className="h-24 w-24 rounded-full object-cover shadow-2xl" />
+        </div>
+      )}
+      <div className="min-h-screen bg-ivory pb-24 lg:pb-0">
       <Nav active={active} setActive={setActive} />
       {active === "Discover" ? (
         <main>
@@ -136,7 +147,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,37,30,.98)_0%,rgba(20,37,30,.82)_32%,rgba(20,37,30,.2)_72%,rgba(20,37,30,.12)_100%)]" />
             <HeroMotion />
             <div className="relative z-10 max-w-2xl hero-reveal">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#872d38] px-3 py-2 shadow-lg lg:hidden">
+              <div className="inline-flex items-center gap-2 px-1 py-1 lg:hidden">
                 <img src="/stylebender-mark.png" alt="" className="h-7 w-7 rounded-full object-cover" />
                 <span className="tracking-[.24em] text-[10px] text-ivory">STYLEBENDER</span>
               </div>
@@ -276,7 +287,8 @@ export default function Home() {
       <footer className="px-6 lg:px-20 pb-10 text-xs text-muted flex justify-between">
         <span>Stylebender</span>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
 function Placeholder({

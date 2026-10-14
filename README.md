@@ -11,7 +11,7 @@ yarn dev
 
 Copy `.env.example` to `.env` and configure `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, and `GEMINI_API_KEY` as needed. Google callback URL for local development:
 
-`http://localhost:3000/api/auth/callback/google`
+`http://localhost:4000/api/auth/callback/google`
 
 The landing page and auth views are public. Product routes are protected by Auth.js middleware. `AUTH_ALLOWED_EMAILS` controls the Google email allowlist.
 
