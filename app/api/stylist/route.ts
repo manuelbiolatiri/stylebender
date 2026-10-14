@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import type { OutfitContext } from "@/lib/outfit";
+import { auth } from "@/auth";
+
+const requestWindow = new Map<string, { count: number; resetAt: number }>();
+const MAX_REQUESTS = 8;
+const WINDOW_MS = 60 * 60 * 1000;
 
 const requestSchema = z.object({
   occasion: z.string().min(1).max(80),
@@ -20,6 +25,24 @@ const responseSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json(
+      { status: "auth_required", error: "Sign in with Google to generate a live styling verdict." },
+      { status: 401 },
+    );
+  }
+  const now = Date.now();
+  const keyForLimit = session.user.email ?? "authenticated-user";
+  const usage = requestWindow.get(keyForLimit);
+  if (usage && usage.resetAt > now && usage.count >= MAX_REQUESTS) {
+    return NextResponse.json({ status: "rate_limited", error: "Styling limit reached. Try again later." }, { status: 429 });
+  }
+  requestWindow.set(keyForLimit, usage && usage.resetAt > now ? { count: usage.count + 1, resetAt: usage.resetAt } : { count: 1, resetAt: now + WINDOW_MS });
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+  if (contentLength > 20_000) {
+    return NextResponse.json({ error: "Styling request is too large." }, { status: 413 });
+  }
   const parsed = requestSchema.safeParse(
     await request.json().catch(() => null),
   );
@@ -41,6 +64,8 @@ export async function POST(request: Request) {
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const context: OutfitContext = parsed.data;
   const prompt = `You are Stylebender, a decisive UK menswear stylist. Return JSON only matching this schema: {"verdict":"Wear|Change One Piece|Elevate|Skip","title":"short title","summary":"concise explanation","reasons":["up to 3 reasons"],"pieces":[{"name":"garment","owned":true,"note":"styling note"}]}. Occasion: ${context.occasion}. Budget: ${context.budget ?? "£150–£300"}. Confirmed styles: ${context.styles.join(", ") || "not yet confirmed"}. Owned wardrobe items: ${context.wardrobe.join(", ") || "none provided"}. User request: ${context.request ?? "Recommend one strong outfit"}. Mark a piece owned only when it matches an item in the supplied wardrobe. Never claim live prices, weather, physical fit, or real product availability.`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
   const result = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
     {
@@ -55,23 +80,49 @@ export async function POST(request: Request) {
         },
       }),
       cache: "no-store",
+      signal: controller.signal,
     },
-  );
-  if (!result.ok)
+  ).finally(() => clearTimeout(timeout)).catch(() => null);
+  if (!result) {
+    return NextResponse.json({ status: "error", error: "Gemini timed out. Try again shortly." }, { status: 504 });
+  }
+  if (!result.ok) {
+    const upstream = await result.json().catch(() => null) as { error?: { message?: string } } | null;
+    console.error("[Gemini] upstream request failed", {
+      status: result.status,
+      model,
+      error: upstream?.error?.message ?? "No error body returned",
+    });
+    const message = result.status === 401 || result.status === 403
+      ? "Gemini rejected the API key. Check that it is an active Gemini API key for this project."
+      : result.status === 404
+        ? `Gemini model '${model}' is unavailable. Update GEMINI_MODEL.`
+        : result.status === 429
+          ? "Gemini quota or rate limit reached. Try again later."
+          : "Gemini could not complete this styling request. Try again shortly.";
     return NextResponse.json(
       {
         status: "error",
-        error:
-          "Gemini could not complete this styling request. Try again shortly.",
+        error: message,
+        ...(process.env.NODE_ENV !== "production" && upstream?.error?.message ? { detail: upstream.error.message } : {}),
       },
-      { status: 502 },
+      { status: result.status === 429 ? 429 : 502 },
     );
+  }
   const payload = (await result.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
   };
   const text = payload.candidates?.[0]?.content?.parts?.[0]?.text;
-  const output = responseSchema.safeParse(text ? JSON.parse(text) : null);
-  if (!output.success)
+  let candidate: unknown = null;
+  try { candidate = text ? JSON.parse(text) : null; } catch { candidate = null; }
+  const output = responseSchema.safeParse(candidate);
+  if (!output.success) {
+    console.error("[Gemini] response did not match styling schema", {
+      model,
+      finishReason: payload.candidates?.[0]?.finishReason,
+      responsePreview: text?.slice(0, 1200) ?? "No text returned",
+      issues: output.error.issues,
+    });
     return NextResponse.json(
       {
         status: "error",
@@ -79,5 +130,6 @@ export async function POST(request: Request) {
       },
       { status: 502 },
     );
+  }
   return NextResponse.json({ status: "ready", data: output.data });
 }

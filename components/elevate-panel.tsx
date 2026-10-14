@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { readCurrentOutfit, saveOutfit, type OutfitVersion } from "@/lib/outfit";
+import { readCurrentOutfit, readOutfits, saveOutfit, type OutfitVersion } from "@/lib/outfit";
 const directions = [
   "More polished",
   "More date-ready",
@@ -11,16 +11,24 @@ const directions = [
 export function ElevatePanel() {
   const [direction, setDirection] = useState(directions[0]);
   const [versions, setVersions] = useState<OutfitVersion[]>([]);
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   useEffect(() => {
-    try { setVersions(JSON.parse(localStorage.getItem("stylebender-elevations") ?? "[]") as OutfitVersion[]); } catch { setVersions([]); }
+    setVersions(readOutfits().filter((item) => item.source === "elevated"));
   }, []);
-  function create() {
+  async function create() {
     const current = readCurrentOutfit();
     if (!current) return;
-    const next = [{ ...current, id: crypto.randomUUID(), createdAt: Date.now(), source: "elevated" as const, direction, title: `${direction}: ${current.title}` }, ...versions].slice(0, 5);
-    setVersions(next);
-    localStorage.setItem("stylebender-elevations", JSON.stringify(next));
-    saveOutfit(next[0]);
+    setStatus("loading");
+    try {
+      const response = await fetch("/api/stylist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...current.context, request: `Create a genuinely different outfit from the current look. Direction: ${direction}. Keep the occasion and style signals, but change at least one major garment. Current garments: ${current.pieces.map((piece) => piece.name).join(", ")}.` }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error);
+      const nextItem: OutfitVersion = { ...payload.data, id: crypto.randomUUID(), createdAt: Date.now(), source: "elevated", direction, context: current.context, version: current.version + 1, priceType: "illustrative" };
+      const next = [nextItem, ...versions].slice(0, 5);
+      setVersions(next);
+      saveOutfit(nextItem);
+      setStatus("idle");
+    } catch { setStatus("error"); }
   }
   return (
     <div className="mt-10 max-w-4xl">
@@ -58,8 +66,9 @@ export function ElevatePanel() {
           onClick={create}
           className="mt-8 bg-forest text-ivory px-5 py-3 text-xs"
         >
-          Create version
+          {status === "loading" ? "Generating with Gemini…" : "Create a different version"}
         </button>
+        {status === "error" && <p className="text-sm text-red-900 mt-4">Gemini could not create this version. Nothing was saved.</p>}
       </div>
       {versions.length > 0 && (
         <div className="mt-4 bg-paper border border-line p-6">

@@ -23,6 +23,7 @@ import { StyleIQPanel } from "@/components/style-iq-panel";
 import { HeroMotion } from "@/components/hero-motion";
 import { defaultOutfitContext, type OutfitContext } from "@/lib/outfit";
 import { getWardrobeMetadata } from "@/lib/wardrobe";
+import { SavedPanel } from "@/components/saved-panel";
 const occasions = [
   ["Church", "Polished, expressive and considered", "/sunday-menswear-editorial.jpg"],
   ["Office Day", "Sharp layers for the working week", "/london-menswear-editorial.jpg"],
@@ -338,6 +339,8 @@ function Placeholder({
         <TryOnPanel />
       ) : active === "Style IQ" ? (
         <StyleIQPanel />
+      ) : active === "Saved" ? (
+        <SavedPanel onOpen={setActive} />
       ) : (
         <div className="mt-10 bg-paper border border-line p-7 max-w-xl">
           <p className="text-muted leading-7">

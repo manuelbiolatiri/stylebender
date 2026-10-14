@@ -1,24 +1,20 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import { useEffect } from "react";
+import { readCurrentOutfit, type OutfitPiece } from "@/lib/outfit";
 export function AchievePanel() {
-  const [owned, setOwned] = useState(["Ivory Oxford shirt"]);
-  const pieces = [
-    ["Charcoal pleated trousers", 85],
-    ["Ivory Oxford shirt", 45],
-    ["Forest textured overshirt", 110],
-    ["Clean leather trainers", 75],
-  ] as const;
+  const [pieces, setPieces] = useState<OutfitPiece[]>([]);
+  useEffect(() => setPieces(readCurrentOutfit()?.pieces ?? []), []);
+  const [owned, setOwned] = useState<string[]>([]);
+  useEffect(() => setOwned(pieces.filter((piece) => piece.owned).map((piece) => piece.name)), [pieces]);
   const toggle = (name: string) =>
     setOwned((current) =>
       current.includes(name)
         ? current.filter((item) => item !== name)
         : [...current, name],
     );
-  const total = pieces.reduce(
-    (sum, [name, price]) => sum + (owned.includes(name) ? 0 : price),
-    0,
-  );
+  const total = pieces.filter((piece) => !owned.includes(piece.name)).length * 75;
   return (
     <div className="mt-10 max-w-4xl">
       <div className="bg-paper border border-line p-6 lg:p-8">
@@ -36,7 +32,9 @@ export function AchievePanel() {
           not live retailer pricing.
         </p>
         <div className="mt-8 space-y-3">
-          {pieces.map(([name, price]) => (
+          {pieces.map((piece) => {
+            const name = piece.name;
+            return (
             <button
               key={name}
               onClick={() => toggle(name)}
@@ -47,7 +45,7 @@ export function AchievePanel() {
                 <span className="block text-xs text-muted mt-1">
                   {owned.includes(name)
                     ? "In your wardrobe · £0 incremental"
-                    : `Illustrative alternative · £${price}`}
+                    : "Illustrative alternative · price not verified"}
                 </span>
               </span>
               <span
@@ -61,7 +59,8 @@ export function AchievePanel() {
                 {owned.includes(name) && "✓"}
               </span>
             </button>
-          ))}
+            );
+          })}
         </div>
         <div className="mt-8 bg-forest text-ivory p-5 flex justify-between items-center">
           <div>

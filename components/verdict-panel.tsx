@@ -1,7 +1,7 @@
 "use client";
 import { ArrowUpRight, Bookmark, Check, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { defaultOutfitContext, readCurrentOutfit, saveOutfit, setCurrentOutfit, type OutfitContext, type OutfitVersion } from "@/lib/outfit";
+import { clearCurrentOutfit, defaultOutfitContext, readCurrentOutfit, saveOutfit, setCurrentOutfit, type OutfitContext, type OutfitVersion } from "@/lib/outfit";
 export function VerdictPanel({
   onSave,
   onAction,
@@ -16,7 +16,11 @@ export function VerdictPanel({
   const [saved, setSaved] = useState(false);
   const [result, setResult] = useState<OutfitVersion | null>(null);
   const [status, setStatus] = useState("idle");
-  useEffect(() => setResult(readCurrentOutfit()), []);
+  useEffect(() => {
+    const current = readCurrentOutfit();
+    setResult(current?.context.occasion === outfitContext.occasion ? current : null);
+    if (current?.context.occasion !== outfitContext.occasion) clearCurrentOutfit();
+  }, [outfitContext.occasion]);
   async function generate() {
     setStatus("loading");
     try {
@@ -29,7 +33,7 @@ export function VerdictPanel({
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error);
-      const next: OutfitVersion = { ...payload.data, id: crypto.randomUUID(), createdAt: Date.now(), source: "verdict", context: outfitContext };
+      const next: OutfitVersion = { ...payload.data, id: crypto.randomUUID(), createdAt: Date.now(), source: "verdict", context: outfitContext, version: 1, priceType: "illustrative" };
       setCurrentOutfit(next);
       setResult(next);
       setVerdict(payload.data.verdict);
@@ -49,7 +53,7 @@ export function VerdictPanel({
         <div>
           <div className="flex justify-between">
             <span className="uppercase tracking-[.25em] text-[10px] text-bronze">
-              Style verdict / Church
+              Style verdict / {outfitContext.occasion}
             </span>
             <Sparkles size={18} className="text-bronze" />
           </div>
@@ -57,8 +61,7 @@ export function VerdictPanel({
             {result?.title ?? "The considered layer."}
           </h2>
           <p className="text-ivory/65 leading-7 mt-6 max-w-sm">
-            {result?.summary ??
-              "Charcoal pleated trousers, an ivory Oxford shirt and a textured forest overshirt. Quiet confidence, with enough texture to feel intentional."}
+            {result?.summary ?? "Generate a live Gemini verdict for this occasion. Your confirmed style profile and wardrobe will shape the recommendation."}
           </p>
         </div>
         <div>
@@ -122,12 +125,14 @@ export function VerdictPanel({
         </div>
         <div className="border-t border-line mt-8 pt-6 flex flex-wrap gap-3">
           <button
+            disabled={!result}
             onClick={() => onAction("Achieve")}
             className="text-xs border border-line px-3 py-2"
           >
             Achieve this look <ArrowUpRight className="inline ml-1" size={14} />
           </button>
           <button
+            disabled={!result}
             onClick={() => onAction("Elevate")}
             className="text-xs border border-line px-3 py-2"
           >
@@ -141,6 +146,7 @@ export function VerdictPanel({
           </button>
           <button
             onClick={save}
+            disabled={!result}
             className="text-xs bg-forest text-ivory px-3 py-2"
           >
             <Bookmark className="inline mr-1" size={14} />
