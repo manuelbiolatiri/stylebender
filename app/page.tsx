@@ -109,23 +109,49 @@ function Nav({
   );
 }
 export default function Home() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [active, setActive] = useState("Discover");
+  const [active, setActiveState] = useState("Discover");
   const [selected, setSelected] = useState("Church");
   const [saved, setSaved] = useState(false);
   const [dna, setDna] = useState(false);
   const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
+  function setActive(next: string, replace = false) {
+    setActiveState(next);
+    if (typeof window !== "undefined") {
+      const url = next === "Discover" ? "/" : `/?view=${encodeURIComponent(next)}`;
+      window.history[replace ? "replaceState" : "pushState"]({}, "", url);
+    }
+  }
   useEffect(() => {
-    const timer = window.setTimeout(() => setShowSplash(false), 2000);
-    return () => window.clearTimeout(timer);
+    const view = new URLSearchParams(window.location.search).get("view");
+    if (view) setActiveState(view);
+    const onPopState = () => setActiveState(new URLSearchParams(window.location.search).get("view") ?? "Discover");
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
   useEffect(() => {
     setSaved(localStorage.getItem("stylebender-saved") === "true");
     try {
+      const pending = JSON.parse(sessionStorage.getItem("stylebender-pending-context") ?? "null");
+      if (pending?.occasion) {
+        setSelected(pending.occasion);
+        setProfileContext(pending);
+        sessionStorage.removeItem("stylebender-pending-context");
+      }
       const profile = JSON.parse(localStorage.getItem("stylebender-profile") ?? "null");
       setProfileContext((current) => ({ ...current, styles: profile?.styles ?? current.styles, budget: profile?.budget ?? current.budget, wardrobe: getWardrobeMetadata().map((item) => item.name) }));
     } catch { /* ignore malformed local metadata */ }
   }, []);
+  useEffect(() => {
+    try {
+      const profile = JSON.parse(localStorage.getItem("stylebender-profile") ?? "null");
+      setProfileContext((current) => ({
+        ...current,
+        styles: profile?.styles ?? current.styles,
+        budget: profile?.budget ?? current.budget,
+        wardrobe: getWardrobeMetadata().map((item) => item.name),
+      }));
+    } catch { /* ignore malformed local metadata */ }
+  }, [active]);
   function save() {
     const next = !saved;
     setSaved(next);
@@ -133,11 +159,6 @@ export default function Home() {
   }
   return (
     <>
-      {showSplash && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#872d38]" role="status" aria-label="Loading Stylebender">
-          <img src="/stylebender-mark.png" alt="Stylebender" className="h-24 w-24 rounded-full object-cover shadow-2xl" />
-        </div>
-      )}
       <div className="min-h-screen bg-ivory pb-24 lg:pb-0">
       <Nav active={active} setActive={setActive} />
       {active === "Discover" ? (
@@ -163,7 +184,7 @@ export default function Home() {
                 Luxury-inspired menswear, made achievable. Start with the moment
                 you’re dressing for.
               </p>
-              <div className="mt-12 grid md:grid-cols-3 gap-3 max-w-4xl">
+              <div className="mt-8 md:mt-12 grid md:grid-cols-3 gap-3 max-w-4xl">
                 {occasions.map(([name, desc, image]) => (
                   <button
                     key={name}
@@ -192,6 +213,13 @@ export default function Home() {
                   </button>
                 ))}
               </div>
+              <button
+                onClick={() => setActive("Verdict")}
+                aria-label="Get one strong look"
+                className="mt-4 w-full md:w-auto bg-ivory text-forest px-6 py-4 text-sm font-medium shadow-lg"
+              >
+                Style me for {selected} <ChevronRight className="inline ml-3" size={16} />
+              </button>
             </div>
           </section>
           <section className="mt-16 lg:mt-28 max-w-[1500px] mx-auto grid md:grid-cols-2 lg:grid-cols-[1.2fr_.8fr] gap-5 px-6 md:px-10 lg:px-20">
@@ -210,7 +238,7 @@ export default function Home() {
                   onClick={() => setActive("Verdict")}
                   className="mt-7 bg-ivory text-forest px-5 py-3 text-xs tracking-wide w-fit"
                 >
-                  Get one strong look{" "}
+                  Style me{" "}
                   <ChevronRight className="inline ml-4" size={15} />
                 </button>
               </div>
@@ -254,7 +282,8 @@ export default function Home() {
               <div className="mt-7 bg-paper border border-line p-6 max-w-2xl">
                 <p className="text-sm leading-6">
                   A draft profile is ready: tailored elegance, quiet luxury and
-                  smart casual. This is an inference, not a fact.
+                  smart casual. This is an optional starting point—not required
+                  to get a first recommendation.
                 </p>
                 <div className="flex gap-2 mt-5">
                   <button

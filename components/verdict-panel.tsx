@@ -35,6 +35,12 @@ export function VerdictPanel({
         }),
       });
       const payload = await response.json();
+      if (response.status === 401 && payload.status === "auth_required") {
+        sessionStorage.setItem("stylebender-pending-context", JSON.stringify(outfitContext));
+        const callback = `${window.location.pathname}${window.location.search}`;
+        window.location.assign(`/sign-in?callbackUrl=${encodeURIComponent(callback)}`);
+        return;
+      }
       if (!response.ok) throw new Error(payload.error ?? "Gemini could not complete this request.");
       const next: OutfitVersion = {
         ...payload.data,

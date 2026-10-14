@@ -4,11 +4,13 @@ import { redirect } from "next/navigation";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<{ error?: string; callbackUrl?: string }>;
 }) {
   const session = await auth();
   if (session?.user) redirect("/");
-  const error = (await searchParams)?.error;
+  const params = await searchParams;
+  const error = params?.error;
+  const callbackUrl = params?.callbackUrl?.startsWith("/") ? params.callbackUrl : "/";
   const configured = Boolean(
     process.env.AUTH_SECRET,
   );
@@ -32,7 +34,7 @@ export default async function SignInPage({
                   await signIn("credentials", {
                     email: formData.get("email"),
                     password: formData.get("password"),
-                    redirectTo: "/",
+                    redirectTo: callbackUrl,
                   });
                 } catch (caught) {
                   if (caught instanceof AuthError) {
@@ -64,7 +66,7 @@ export default async function SignInPage({
               <form
                 action={async () => {
                   "use server";
-                  await signIn("google", { redirectTo: "/" });
+                  await signIn("google", { redirectTo: callbackUrl });
                 }}
               >
                 <button className="w-full border border-forest text-forest py-4 mt-3 text-sm">
