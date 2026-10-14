@@ -19,7 +19,16 @@ html {
 }
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+}
+.display,
+.serif {
+  font-family: "Bodoni 72", "Didot", "Iowan Old Style", Georgia, serif;
+}
+.eyebrow {
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-size: 10px;
 }
 button {
   font: inherit;

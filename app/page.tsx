@@ -44,7 +44,7 @@ function Nav({
 }) {
   return (
     <>
-      <div className="hidden lg:flex sticky top-5 z-30 mx-auto mt-5 max-w-5xl h-[72px] rounded-2xl bg-forest text-ivory items-center justify-between px-5 shadow-[0_18px_45px_rgba(20,37,30,0.18)]">
+      <div className="hidden lg:flex sticky top-5 z-30 mx-auto mt-5 max-w-5xl h-[72px] rounded-2xl bg-paper/75 backdrop-blur-2xl border border-forest/10 text-forest items-center justify-between px-5 shadow-[0_18px_45px_rgba(20,37,30,0.14)] supports-[backdrop-filter]:bg-paper/60">
         <div className="flex items-center gap-3">
           <img
             src="/stylebender-mark.png"
@@ -66,7 +66,7 @@ function Nav({
               className={
                 active === label
                   ? "text-bronze"
-                  : "text-ivory/65 hover:text-ivory transition-colors"
+                  : "text-muted hover:text-forest transition-colors"
               }
             >
               <I size={16} className="inline mr-2" />
@@ -75,7 +75,7 @@ function Nav({
           ))}
         </div>
         <div className="flex items-center gap-4">
-          <AuthButton dark />
+          <AuthButton />
           <button
             className="border border-ivory/30 rounded-xl px-3 py-2 text-xs text-ivory/80 hover:border-bronze hover:text-bronze transition-colors"
             onClick={() => setActive("Profile")}
@@ -153,45 +153,53 @@ export default function Home() {
       {active === "Discover" ? (
         <main>
           <HeroMotion />
-          <section className="px-6 pt-14 lg:px-20 lg:pt-20 max-w-[1500px] mx-auto">
-            <p className="text-bronze uppercase tracking-[.25em] text-[10px]">
-              Tuesday, 13 October · London
-            </p>
-            <h1 className="serif text-5xl lg:text-7xl leading-[.95] mt-5 max-w-2xl">
-              Discover your style.
-              <br />
-              <span className="text-forest/55">Make it yours.</span>
-            </h1>
-            <p className="text-muted mt-6 max-w-md leading-7">
-              Luxury-inspired menswear, made achievable. Start with the moment
-              you’re dressing for.
-            </p>
-            <div className="mt-12 grid md:grid-cols-3 gap-3">
-              {occasions.map(([name, desc]) => (
-                <button
-                  key={name}
-                  onClick={() => setSelected(name)}
-                  className={
-                    "text-left p-5 border transition " +
-                    (selected === name
-                      ? "bg-forest text-ivory border-forest"
-                      : "bg-paper border-line hover:border-bronze")
-                  }
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="serif text-2xl">{name}</span>
-                    <ArrowUpRight size={18} />
-                  </div>
-                  <p
+          <section className="relative overflow-hidden mx-4 lg:mx-8 mt-8 min-h-[680px] bg-forest text-ivory px-6 pt-14 lg:px-20 lg:pt-28 max-w-[1500px] mx-auto rounded-[2rem]">
+            <img
+              src="/editorial-hero.png"
+              alt="A model wearing a forest overshirt in a cinematic studio"
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-80"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-forest via-forest/70 to-transparent" />
+            <div className="relative z-10 max-w-2xl">
+              <p className="text-bronze uppercase tracking-[.25em] text-[10px]">
+                Tuesday, 13 October · London
+              </p>
+              <h1 className="serif text-5xl lg:text-7xl leading-[.95] mt-5 max-w-2xl">
+                Discover your style.
+                <br />
+                <span className="text-ivory/55">Make it yours.</span>
+              </h1>
+              <p className="text-ivory/70 mt-6 max-w-md leading-7">
+                Luxury-inspired menswear, made achievable. Start with the moment
+                you’re dressing for.
+              </p>
+              <div className="mt-12 grid md:grid-cols-3 gap-3">
+                {occasions.map(([name, desc]) => (
+                  <button
+                    key={name}
+                    onClick={() => setSelected(name)}
                     className={
-                      "text-xs mt-8 leading-5 " +
-                      (selected === name ? "text-ivory/65" : "text-muted")
+                      "text-left p-5 border transition " +
+                      (selected === name
+                        ? "bg-ivory text-forest border-ivory"
+                        : "bg-paper/10 text-ivory border-ivory/25 hover:border-bronze")
                     }
                   >
-                    {desc}
-                  </p>
-                </button>
-              ))}
+                    <div className="flex justify-between items-start">
+                      <span className="serif text-2xl">{name}</span>
+                      <ArrowUpRight size={18} />
+                    </div>
+                    <p
+                      className={
+                        "text-xs mt-8 leading-5 " +
+                        (selected === name ? "text-forest/65" : "text-ivory/65")
+                      }
+                    >
+                      {desc}
+                    </p>
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
           <section className="mt-16 lg:mt-24 max-w-[1500px] mx-auto grid lg:grid-cols-[1.2fr_.8fr] gap-5 px-6 lg:px-20">
