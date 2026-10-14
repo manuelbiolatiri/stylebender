@@ -295,6 +295,7 @@ export default function Home() {
           saved={saved}
           save={save}
           setActive={setActive}
+          setSelected={setSelected}
           context={{ ...profileContext, occasion: selected }}
         />
       )}
@@ -309,12 +310,14 @@ function Placeholder({
   saved,
   save,
   setActive,
+  setSelected,
   context,
 }: {
   active: string;
   saved: boolean;
   save: () => void;
   setActive: (x: string) => void;
+  setSelected: (occasion: string) => void;
   context: OutfitContext;
 }) {
   return (
@@ -340,7 +343,7 @@ function Placeholder({
       ) : active === "Style IQ" ? (
         <StyleIQPanel />
       ) : active === "Saved" ? (
-        <SavedPanel onOpen={setActive} />
+        <SavedPanel onOpen={(item) => { setSelected(item.context.occasion); setActive("Verdict"); }} />
       ) : (
         <div className="mt-10 bg-paper border border-line p-7 max-w-xl">
           <p className="text-muted leading-7">

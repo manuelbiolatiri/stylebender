@@ -1,7 +1,20 @@
+import { z } from "zod";
+
+export type ProductReference = {
+  id: string;
+  source: "local-catalog" | "retailer";
+  name: string;
+  image: string;
+  url?: string;
+  retailer?: string;
+  price?: { amount: number; currency: string; verified: boolean };
+};
+
 export type OutfitPiece = {
   name: string;
   owned: boolean;
   note: string;
+  product?: ProductReference;
 };
 
 export type OutfitContext = {
@@ -37,7 +50,20 @@ export const outfitSchema = z.object({
   title: z.string(),
   summary: z.string(),
   reasons: z.array(z.string()),
-  pieces: z.array(z.object({ name: z.string(), owned: z.boolean(), note: z.string() })),
+  pieces: z.array(z.object({
+    name: z.string(),
+    owned: z.boolean(),
+    note: z.string(),
+    product: z.object({
+      id: z.string(),
+      source: z.enum(["local-catalog", "retailer"]),
+      name: z.string(),
+      image: z.string(),
+      url: z.string().optional(),
+      retailer: z.string().optional(),
+      price: z.object({ amount: z.number(), currency: z.string(), verified: z.boolean() }).optional(),
+    }).optional(),
+  })),
   version: z.number().int().positive(),
   priceType: z.enum(["illustrative", "verified"]),
 });
@@ -85,9 +111,6 @@ export function readCurrentOutfit(): OutfitVersion | null {
 export function setCurrentOutfit(outfit: OutfitVersion) {
   localStorage.setItem(CURRENT_KEY, JSON.stringify(outfitSchema.parse(outfit)));
 }
-import { z } from "zod";
-
-
 export function clearCurrentOutfit() {
   localStorage.removeItem(CURRENT_KEY);
 }

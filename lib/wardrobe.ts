@@ -5,6 +5,11 @@ export type WardrobeItem = {
   name: string;
   category: string;
   createdAt: number;
+  source?: "user" | "demo";
+  colour?: string;
+  material?: string;
+  styles?: string[];
+  occasions?: string[];
 };
 interface WardrobeDB extends DBSchema {
   items: { key: string; value: WardrobeItem };
@@ -45,6 +50,21 @@ export async function deleteWardrobeItem(id: string) {
   if (typeof window !== "undefined") {
     const current = JSON.parse(localStorage.getItem("stylebender-wardrobe-meta") ?? "[]") as WardrobeItem[];
     localStorage.setItem("stylebender-wardrobe-meta", JSON.stringify(current.filter((item) => item.id !== id)));
+  }
+}
+
+export async function deleteWardrobeItems(ids: string[]) {
+  const db = await database();
+  const tx = db.transaction(["items", "media"], "readwrite");
+  for (const id of ids) {
+    await tx.objectStore("items").delete(id);
+    await tx.objectStore("media").delete(id);
+  }
+  await tx.done;
+  if (typeof window !== "undefined") {
+    const remove = new Set(ids);
+    const current = getWardrobeMetadata().filter((item) => !remove.has(item.id));
+    localStorage.setItem("stylebender-wardrobe-meta", JSON.stringify(current));
   }
 }
 

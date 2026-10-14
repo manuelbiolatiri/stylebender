@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { readCurrentOutfit, readOutfits, saveOutfit, type OutfitVersion } from "@/lib/outfit";
+import { readCurrentOutfit, readOutfits, saveOutfit, setCurrentOutfit, type OutfitVersion } from "@/lib/outfit";
+import { findCatalogProduct } from "@/lib/products";
 const directions = [
   "More polished",
   "More date-ready",
@@ -23,10 +24,21 @@ export function ElevatePanel() {
       const response = await fetch("/api/stylist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...current.context, request: `Create a genuinely different outfit from the current look. Direction: ${direction}. Keep the occasion and style signals, but change at least one major garment. Current garments: ${current.pieces.map((piece) => piece.name).join(", ")}.` }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error);
-      const nextItem: OutfitVersion = { ...payload.data, id: crypto.randomUUID(), createdAt: Date.now(), source: "elevated", direction, context: current.context, version: current.version + 1, priceType: "illustrative" };
+      const nextItem: OutfitVersion = {
+        ...payload.data,
+        pieces: payload.data.pieces.map((piece: { name: string; owned: boolean; note: string }) => ({ ...piece, product: findCatalogProduct(piece.name) })),
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+        source: "elevated",
+        direction,
+        context: current.context,
+        version: current.version + 1,
+        priceType: "illustrative",
+      };
       const next = [nextItem, ...versions].slice(0, 5);
       setVersions(next);
       saveOutfit(nextItem);
+      setCurrentOutfit(nextItem);
       setStatus("idle");
     } catch { setStatus("error"); }
   }

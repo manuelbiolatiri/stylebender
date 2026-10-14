@@ -2,6 +2,7 @@
 import { ArrowUpRight, Bookmark, Check, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { clearCurrentOutfit, defaultOutfitContext, readCurrentOutfit, saveOutfit, setCurrentOutfit, type OutfitContext, type OutfitVersion } from "@/lib/outfit";
+import { findCatalogProduct } from "@/lib/products";
 export function VerdictPanel({
   onSave,
   onAction,
@@ -35,7 +36,19 @@ export function VerdictPanel({
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Gemini could not complete this request.");
-      const next: OutfitVersion = { ...payload.data, id: crypto.randomUUID(), createdAt: Date.now(), source: "verdict", context: outfitContext, version: 1, priceType: "illustrative" };
+      const next: OutfitVersion = {
+        ...payload.data,
+        pieces: payload.data.pieces.map((piece: { name: string; owned: boolean; note: string }) => ({
+          ...piece,
+          product: findCatalogProduct(piece.name),
+        })),
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+        source: "verdict",
+        context: outfitContext,
+        version: 1,
+        priceType: "illustrative",
+      };
       setCurrentOutfit(next);
       setResult(next);
       setVerdict(payload.data.verdict);
@@ -123,6 +136,19 @@ export function VerdictPanel({
             </p>
           ))}
         </div>
+        {result && (
+          <div className="border-t border-line mt-8 pt-6">
+            <p className="uppercase tracking-[.25em] text-[10px] text-bronze">Recommended garments</p>
+            <div className="grid sm:grid-cols-2 gap-3 mt-4">
+              {result.pieces.map((piece) => (
+                <div key={piece.name} className="flex gap-3 items-center border border-line p-2">
+                  {piece.product ? <img src={piece.product.image} alt="" className="w-14 h-14 object-cover" /> : <div className="w-14 h-14 bg-forest/10" />}
+                  <div className="min-w-0"><p className="text-sm truncate">{piece.name}</p><p className="text-[11px] text-muted">{piece.owned ? "From your wardrobe" : "Catalog reference · not a live listing"}</p></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="border-t border-line mt-8 pt-6 flex flex-wrap gap-3">
           <button
             disabled={!result}

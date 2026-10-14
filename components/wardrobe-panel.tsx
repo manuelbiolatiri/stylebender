@@ -1,13 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Camera, ImagePlus, Trash2 } from "lucide-react";
+import { Camera, ImagePlus, RotateCcw, Trash2 } from "lucide-react";
 import {
   deleteWardrobeItem,
+  deleteWardrobeItems,
   getWardrobeItems,
   getWardrobeMedia,
   saveWardrobeItem,
   type WardrobeItem,
 } from "@/lib/wardrobe";
+import { demoWardrobe, importDemoWardrobe } from "@/lib/demo-wardrobe";
 
 const categories = [
   "Tops",
@@ -56,6 +58,19 @@ export function WardrobePanel() {
     await deleteWardrobeItem(id);
     setItems((current) => current.filter((item) => item.id !== id));
   }
+  async function loadDemo() {
+    setBusy(true);
+    await importDemoWardrobe();
+    await refresh();
+    setBusy(false);
+  }
+  async function resetDemo() {
+    setBusy(true);
+    const demoIds = (await getWardrobeItems()).filter((item) => item.source === "demo" || item.id.startsWith("demo-")).map((item) => item.id);
+    await deleteWardrobeItems(demoIds);
+    await refresh();
+    setBusy(false);
+  }
   return (
     <div className="mt-10 max-w-5xl">
       <div className="bg-paper border border-line p-6 lg:p-8">
@@ -87,6 +102,11 @@ export function WardrobePanel() {
             )}
           </label>
         </div>
+        {process.env.NODE_ENV !== "production" && <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
+          <button onClick={loadDemo} disabled={busy} className="border border-bronze text-bronze px-4 py-2 text-xs"><RotateCcw className="inline mr-2" size={14} />Load Sample Wardrobe</button>
+          <button onClick={resetDemo} disabled={busy} className="border border-line text-muted px-4 py-2 text-xs">Reset Sample Wardrobe</button>
+          <span className="text-[11px] text-muted self-center">Development fixture · {demoWardrobe.length} coordinated pieces</span>
+        </div>}
         <div className="flex gap-2 flex-wrap mt-7">
           {categories.map((name) => (
             <button
@@ -124,6 +144,7 @@ export function WardrobePanel() {
               <div className="p-3">
                 <p className="text-xs truncate">{item.name}</p>
                 <p className="text-[10px] text-muted mt-1">{item.category}</p>
+                {item.source === "demo" && <p className="text-[10px] text-bronze mt-1">Demo data</p>}
                 <button
                   onClick={() => remove(item.id)}
                   aria-label={"Remove " + item.name}

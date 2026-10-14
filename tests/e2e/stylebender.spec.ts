@@ -98,6 +98,40 @@ test.describe('Stylebender guest shell', () => {
     await expect(page.getByText('forest-overshirt')).toBeVisible();
   });
 
+  test('loads the sample wardrobe without duplicates and preserves it after reload', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Wardrobe/i }).first().click();
+    await page.getByRole('button', { name: /Load Sample Wardrobe/i }).click();
+    await expect(page.getByText('Navy hopsack blazer')).toBeVisible();
+    await expect(page.getByText('Demo data').first()).toBeVisible();
+    await page.getByRole('button', { name: /Load Sample Wardrobe/i }).click();
+    await expect(page.getByText('Navy hopsack blazer')).toHaveCount(1);
+    await page.reload();
+    await page.getByRole('button', { name: /Wardrobe/i }).first().click();
+    await expect(page.getByText('Ivory Yoruba agbada with indigo embroidery')).toBeVisible();
+  });
+
+  test('sample wardrobe names reach Gemini and reset leaves user items', async ({ page }) => {
+    let requestBody: Record<string, unknown> | null = null;
+    await page.route('**/api/stylist', async (route) => {
+      requestBody = JSON.parse(route.request().postData() ?? '{}');
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ready', data: { verdict: 'Wear', title: 'Sample look', summary: 'A test look.', reasons: ['Works'], pieces: [{ name: 'Navy hopsack blazer', owned: true, note: 'Layer over the shirt' }] } }) });
+    });
+    await page.goto('/');
+    await page.getByRole('button', { name: /Wardrobe/i }).first().click();
+    const onePixelPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
+    await page.locator('input[type="file"]').setInputFiles({ name: 'my-shirt.png', mimeType: 'image/png', buffer: onePixelPng });
+    await page.getByRole('button', { name: /Load Sample Wardrobe/i }).click();
+    await page.getByRole('button', { name: /Discover/i }).first().click();
+    await page.getByRole('button', { name: /Get one strong look/i }).click();
+    await page.getByRole('button', { name: /Generate with Gemini/i }).click();
+    await expect.poll(() => requestBody?.wardrobe as string[]).toContain('Navy hopsack blazer');
+    await page.getByRole('button', { name: /Wardrobe/i }).first().click();
+    await page.getByRole('button', { name: /Reset Sample Wardrobe/i }).click();
+    await expect(page.getByText('my-shirt')).toBeVisible();
+    await expect(page.getByText('Navy hopsack blazer')).toHaveCount(0);
+  });
+
   for (const width of [390, 768, 1440]) {
     test(`has no horizontal overflow at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });

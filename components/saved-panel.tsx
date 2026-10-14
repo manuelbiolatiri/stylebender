@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Trash2 } from "lucide-react";
 import { readOutfits, removeOutfit, setCurrentOutfit, type OutfitVersion } from "@/lib/outfit";
 
-export function SavedPanel({ onOpen }: { onOpen: (section: string) => void }) {
+export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }) {
   const [items, setItems] = useState<OutfitVersion[]>([]);
   const [filter, setFilter] = useState("All");
   useEffect(() => setItems(readOutfits()), []);
@@ -11,7 +11,7 @@ export function SavedPanel({ onOpen }: { onOpen: (section: string) => void }) {
   const visible = filter === "All" ? items : items.filter((item) => item.context.occasion === filter);
   function reopen(item: OutfitVersion) {
     setCurrentOutfit(item);
-    onOpen("Verdict");
+    onOpen(item);
   }
   return (
     <div className="mt-10 max-w-5xl">
