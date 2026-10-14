@@ -6,11 +6,9 @@ import {
   Bookmark,
   ChevronRight,
   Compass,
-  Menu,
   Shirt,
   Sparkles,
   UserRound,
-  X,
 } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
 import { WardrobePanel } from "@/components/wardrobe-panel";
@@ -89,7 +87,7 @@ function Nav({
           </button>
         </div>
       </div>
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 h-20 bg-paper/95 backdrop-blur border-t border-line flex justify-around items-center z-20">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 h-[84px] rounded-t-[1.75rem] bg-paper/95 backdrop-blur-xl border-t border-line flex justify-around items-center px-2 z-20 shadow-[0_-12px_35px_rgba(20,37,30,0.12)]">
         {[
           ["Discover", Compass],
           ["Wardrobe", Shirt],
@@ -100,7 +98,7 @@ function Nav({
             key={label}
             onClick={() => setActive(label)}
             aria-label={label}
-            className={active === label ? "text-forest" : "text-muted"}
+            className={`min-w-[68px] min-h-[58px] rounded-2xl flex flex-col items-center justify-center transition-colors ${active === label ? "text-forest bg-forest/10" : "text-muted"}`}
           >
             <I size={20} />
             <span className="block text-[10px] mt-1">{label}</span>
@@ -114,7 +112,6 @@ export default function Home() {
   const [active, setActive] = useState("Discover");
   const [selected, setSelected] = useState("Church");
   const [saved, setSaved] = useState(false);
-  const [menu, setMenu] = useState(false);
   const [dna, setDna] = useState(false);
   const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
   useEffect(() => {
@@ -130,42 +127,19 @@ export default function Home() {
     localStorage.setItem("stylebender-saved", String(next));
   }
   return (
-    <div className="min-h-screen bg-ivory pb-24">
+    <div className="min-h-screen bg-ivory pb-24 lg:pb-0">
       <Nav active={active} setActive={setActive} />
-      <header className="px-6 pt-6 lg:hidden flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img
-            src="/stylebender-mark.png"
-            alt="Stylebender"
-            className="h-9 w-9 rounded-full object-cover"
-          />
-          <span className="tracking-[.25em] text-xs">STYLEBENDER</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <AuthButton />
-          <button
-            className="text-muted"
-            aria-label="Profile"
-            onClick={() => setActive("Profile")}
-          >
-            <UserRound size={20} />
-          </button>
-          <button
-            className="lg:hidden"
-            onClick={() => setMenu(!menu)}
-            aria-label="Menu"
-          >
-            {menu ? <X /> : <Menu />}
-          </button>
-        </div>
-      </header>
       {active === "Discover" ? (
         <main>
-          <section className="hero-shell relative overflow-hidden mt-5 min-h-[720px] bg-forest text-ivory px-6 pt-20 md:px-12 lg:px-20 lg:pt-32 max-w-[1600px] mx-auto">
+          <section className="hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[720px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-8 md:px-12 lg:px-20 lg:pt-32 max-w-[1600px] mx-auto">
             <Image src="/stylebender-hero-campaign.jpg" alt="Model in a forest green tailored jacket" fill priority sizes="100vw" className="hero-image absolute inset-0 object-cover object-[62%_center]" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,37,30,.98)_0%,rgba(20,37,30,.82)_32%,rgba(20,37,30,.2)_72%,rgba(20,37,30,.12)_100%)]" />
             <HeroMotion />
             <div className="relative z-10 max-w-2xl hero-reveal">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#872d38] px-3 py-2 shadow-lg lg:hidden">
+                <img src="/stylebender-mark.png" alt="" className="h-7 w-7 rounded-full object-cover" />
+                <span className="tracking-[.24em] text-[10px] text-ivory">STYLEBENDER</span>
+              </div>
               <p className="eyebrow text-bronze">
                 The London edit · 2026
               </p>
@@ -321,7 +295,11 @@ function Placeholder({
   context: OutfitContext;
 }) {
   return (
-    <main className="px-6 lg:px-20 pt-20 max-w-6xl">
+    <main className="px-6 lg:px-20 pt-6 lg:pt-20 max-w-6xl">
+      <button onClick={() => setActive("Discover")} className="lg:hidden inline-flex items-center gap-2 text-xs text-muted mb-7 min-h-10" aria-label="Back to Discover">
+        <ChevronRight className="rotate-180" size={17} />
+        Discover
+      </button>
       {active !== "Profile" && (
         <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
           Stylebender / {active}
