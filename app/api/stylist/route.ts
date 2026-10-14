@@ -4,7 +4,8 @@ import type { OutfitContext } from "@/lib/outfit";
 import { auth } from "@/auth";
 
 const requestWindow = new Map<string, { count: number; resetAt: number }>();
-const MAX_REQUESTS = 8;
+const MAX_REQUESTS = Number(process.env.GEMINI_MAX_REQUESTS_PER_HOUR ?? 8);
+const MAX_OUTPUT_TOKENS = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS ?? 2048);
 const WINDOW_MS = 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 45_000;
 const MAX_RETRIES = 2;
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
       responseMimeType: "application/json",
       thinkingConfig: { thinkingLevel: "low" },
       temperature: 0.7,
-      maxOutputTokens: 4096,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
     },
   });
   const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

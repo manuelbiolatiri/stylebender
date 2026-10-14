@@ -9,7 +9,7 @@
     "start": "next start -p 4000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests --exclude tests/e2e/**",
+    "test": "vitest run --passWithNoTests --exclude 'tests/e2e/**'",
     "test:e2e": "playwright test"
   },
   "dependencies": {

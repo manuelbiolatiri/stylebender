@@ -148,9 +148,10 @@ export default function Home() {
   }
 
   function startStyling(occasionToStyle: string) {
-    const target = occasionToStyle.trim() || "Date Night";
+    const target = occasionToStyle.trim();
+    if (!target) return;
     setSelected(target);
-    setAutoGenerateVerdict(false);
+    setAutoGenerateVerdict(true);
     setActive("Verdict");
   }
 
@@ -361,9 +362,10 @@ export default function Home() {
                 {/* Primary CTA Button */}
                 <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
                   <button
-                    onClick={() => startStyling(selected || "Date Night")}
+                    onClick={() => startStyling(selected)}
+                    disabled={!selected.trim()}
                     aria-label={`Get one strong look · Style me for ${selected || "an occasion"}`}
-                    className="w-full sm:w-auto bg-ivory text-forest px-7 py-4 text-sm font-semibold shadow-xl hover:bg-ivory/95 transition-all flex items-center justify-center gap-2 group"
+                    className="w-full sm:w-auto bg-ivory text-forest px-7 py-4 text-sm font-semibold shadow-xl hover:bg-ivory/95 transition-all flex items-center justify-center gap-2 group disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <span>{selected ? `Style me for ${selected}` : "Style me for an occasion"}</span>
                     <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -398,8 +400,9 @@ export default function Home() {
                     {selected || "an occasion"}
                   </h2>
                   <button
-                    onClick={() => startStyling(selected || "Date Night")}
-                    className="mt-6 bg-ivory text-forest px-6 py-3 text-xs tracking-wide font-medium w-fit hover:bg-ivory/90 transition-colors inline-flex items-center gap-2"
+                    onClick={() => startStyling(selected)}
+                    disabled={!selected.trim()}
+                    className="mt-6 bg-ivory text-forest px-6 py-3 text-xs tracking-wide font-medium w-fit hover:bg-ivory/90 transition-colors inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <span>Style me</span>
                     <ChevronRight size={15} />

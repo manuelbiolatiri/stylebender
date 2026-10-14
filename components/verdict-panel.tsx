@@ -266,27 +266,24 @@ export function VerdictPanel({
         </div>
 
         <div className="relative z-10 pt-6">
-          <div className="flex items-center gap-3 mb-4">
-            <button
-              onClick={() => generate()}
-              disabled={status === "loading"}
-              aria-label={status === "error" ? "Retry Gemini" : "Generate with Gemini"}
-              className="border border-bronze text-bronze px-4 py-2 text-xs hover:bg-bronze/10 transition-colors disabled:opacity-50 inline-flex items-center"
-            >
-              {status === "loading" ? (
-                <>
-                  <Loader2 className="inline mr-2 animate-spin" size={14} />
-                  Curating with Gemini…
-                </>
-              ) : status === "error" ? (
+          <div className="flex items-center gap-3 mb-4 min-h-8">
+            {status === "loading" ? (
+              <span className="text-xs text-bronze inline-flex items-center">
+                <Loader2 className="inline mr-2 animate-spin" size={14} />
+                Curating with Gemini…
+              </span>
+            ) : status === "error" ? (
+              <button
+                onClick={() => generate()}
+                aria-label="Retry Gemini"
+                className="border border-bronze text-bronze px-4 py-2 text-xs hover:bg-bronze/10 transition-colors inline-flex items-center"
+              >
                 <>
                   <RefreshCw className="inline mr-2" size={13} />
                   Retry Gemini
                 </>
-              ) : (
-                "Generate with Gemini"
-              )}
-            </button>
+              </button>
+            ) : null}
           </div>
 
           {status === "error" && (
