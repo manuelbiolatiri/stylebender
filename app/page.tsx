@@ -540,7 +540,7 @@ function Placeholder({
   onAutoGenerateConsumed: () => void;
 }) {
   return (
-    <main className="px-6 lg:px-20 pt-6 lg:pt-16 max-w-6xl">
+    <main className="w-full min-w-0 px-6 lg:px-20 pt-6 lg:pt-16 max-w-6xl">
       <button
         onClick={() => setActive("Discover")}
         className="lg:hidden inline-flex items-center gap-2 text-xs text-muted mb-6 min-h-10 hover:text-forest"

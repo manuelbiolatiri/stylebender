@@ -198,22 +198,22 @@ export function VerdictPanel({
   }
 
   return (
-    <div className="mt-8 grid lg:grid-cols-[1.1fr_.9fr] gap-6 max-w-5xl">
+    <div className="mt-8 grid w-full min-w-0 lg:grid-cols-[1.1fr_.9fr] gap-6 max-w-5xl">
       {/* Left Column: Verdict Hero Card */}
-      <div className="bg-forest text-ivory min-h-[460px] p-7 lg:p-10 flex flex-col justify-between relative overflow-hidden">
+      <div className="min-w-0 w-full bg-forest text-ivory min-h-[460px] p-7 lg:p-10 flex flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex justify-between items-center">
-            <span className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
+            <span className="min-w-0 flex-1 uppercase tracking-[.25em] text-[10px] text-bronze font-medium break-words">
               Style verdict / {occasion}
             </span>
             <Sparkles size={18} className="text-bronze" />
           </div>
 
-          <h2 className="serif text-4xl lg:text-5xl mt-8 leading-tight">
+          <h2 className="serif text-4xl lg:text-5xl mt-8 leading-tight break-words">
             {result?.title ?? "The considered layer."}
           </h2>
 
-          <p className="text-ivory/70 leading-7 mt-5 max-w-md text-sm lg:text-base">
+          <p className="text-ivory/70 leading-7 mt-5 max-w-md text-sm lg:text-base break-words">
             {result?.summary ??
               "Your personalized outfit is ready to be styled. Gemini creates a cohesive look matching your occasion, wardrobe, and style preferences."}
           </p>
@@ -231,7 +231,7 @@ export function VerdictPanel({
                       setSwapPieceName(piece.name);
                       setVerdict("Change One Piece");
                     }}
-                    className="group text-left"
+                    className="group min-w-0 w-full text-left"
                     aria-label={`Change ${piece.name}`}
                   >
                     <div className="aspect-square overflow-hidden border border-ivory/20 bg-ivory/10">
@@ -241,7 +241,7 @@ export function VerdictPanel({
                         <div className="h-full w-full flex items-center justify-center text-ivory/40"><Shirt size={18} /></div>
                       )}
                     </div>
-                    <span className="block text-[9px] leading-3 text-ivory/75 mt-1 line-clamp-2">{piece.name}</span>
+                    <span className="block min-w-0 text-[9px] leading-3 text-ivory/75 mt-1 line-clamp-2 break-words">{piece.name}</span>
                     <span className="block text-[9px] text-bronze mt-0.5">{piece.owned ? "Yours" : "Reference"}</span>
                   </button>
                 );
@@ -353,7 +353,7 @@ export function VerdictPanel({
       </div>
 
       {/* Right Column: Garments & Rationale */}
-      <div className="bg-paper border border-line p-7 lg:p-10 flex flex-col justify-between">
+      <div className="min-w-0 w-full bg-paper border border-line p-7 lg:p-10 flex flex-col justify-between">
         <div>
           <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
             Styling breakdown
@@ -369,7 +369,7 @@ export function VerdictPanel({
             ).map((reason, idx) => (
               <div key={idx} className="flex gap-3 items-start">
                 <span className="text-bronze text-xs font-mono mt-0.5">0{idx + 1}</span>
-                <p className="text-muted text-sm leading-relaxed">{reason}</p>
+                <p className="min-w-0 flex-1 text-muted text-sm leading-relaxed break-words">{reason}</p>
               </div>
             ))}
           </div>
@@ -400,7 +400,7 @@ export function VerdictPanel({
                         setVerdict("Change One Piece");
                       }}
                       aria-label={`Change ${piece.name}`}
-                      className="flex gap-3 items-center border border-line p-2.5 bg-ivory/30 hover:border-bronze transition-colors"
+                      className="flex min-w-0 w-full gap-3 items-center border border-line p-2.5 bg-ivory/30 hover:border-bronze transition-colors"
                     >
                       <div className="relative w-14 h-14 shrink-0 overflow-hidden bg-forest/5 border border-line">
                         {imgSrc ? (
