@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ShieldCheck, Trash2, Upload, X } from "lucide-react";
+import { AlertCircle, ShieldCheck, Trash2, Upload, X } from "lucide-react";
 
 type PreviewFile = {
   id: string;
@@ -44,71 +44,108 @@ export function TryOnPanel() {
   }
 
   return (
-    <div className="mt-10 max-w-3xl bg-paper border border-line p-6 lg:p-8">
-      <div className="relative h-52 overflow-hidden -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 mb-8">
-        <Image src="/fitting-room-editorial.jpg" alt="Editorial fitting room with mirrored styling view" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-forest/70 to-transparent" />
+    <div className="mt-8 max-w-3xl bg-paper border border-line p-6 lg:p-8">
+      <div className="relative h-48 md:h-56 overflow-hidden -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 mb-8">
+        <Image
+          src="/fitting-room-editorial.jpg"
+          alt="Editorial fitting room with mirrored styling view"
+          fill
+          sizes="(max-width: 768px) 100vw, 800px"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-forest/80 via-forest/30 to-transparent" />
+        <span className="absolute bottom-4 left-6 eyebrow text-ivory">Experimental / Studio Preview</span>
       </div>
-      <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
-        Visual preview
+
+      <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 text-amber-900 text-xs mb-6">
+        <AlertCircle size={15} className="shrink-0" />
+        <span>
+          <strong>Provider Offline:</strong> Generative virtual try-on is in development. No third-party image synthesis provider is currently connected. You can upload local reference imagery to preview styling privately.
+        </span>
+      </div>
+
+      <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
+        Local Visual Reference
       </p>
-      <h2 className="serif text-4xl mt-3">Try on, thoughtfully.</h2>
-      <p className="text-muted leading-6 mt-4">
-        Add one or more reference images or short videos of yourself and the garments
-        you want to compare. Everything is previewed locally in this browser first.
-        This cannot guarantee fit, sizing, drape, comfort, or fabric behaviour.
+      <h2 className="serif text-3xl md:text-4xl mt-2">Try on, thoughtfully.</h2>
+      <p className="text-muted leading-6 mt-3 text-sm md:text-base">
+        Add reference photos or short video clips of yourself alongside recommended pieces.
+        Everything is previewed locally in your browser only. This does not claim physical drape, exact fit, or textile stretch.
       </p>
-      <div className="mt-8 border border-dashed border-line p-8 text-center">
+
+      <div className="mt-6 border border-dashed border-line p-8 text-center bg-ivory/20">
         <Upload className="mx-auto text-bronze" size={24} />
-        <p className="text-sm mt-3">{files.length ? `${files.length} file${files.length === 1 ? "" : "s"} selected` : "Choose images or videos"}</p>
-        <label className="inline-block border border-line px-4 py-2 text-xs mt-4 cursor-pointer">
-          Add files
+        <p className="text-sm font-medium mt-3">
+          {files.length ? `${files.length} file${files.length === 1 ? "" : "s"} loaded locally` : "Choose reference images or clips"}
+        </p>
+        <label className="inline-block border border-forest bg-forest text-ivory px-4 py-2 text-xs mt-3 cursor-pointer hover:bg-forest/90 transition-colors">
+          Select files
           <input
             className="sr-only"
             type="file"
             accept="image/*,video/*"
             multiple
-            onChange={(event) => { addFiles(event.target.files); event.currentTarget.value = ""; }}
+            onChange={(event) => {
+              addFiles(event.target.files);
+              event.currentTarget.value = "";
+            }}
           />
         </label>
-        <p className="text-[11px] text-muted mt-3">Images and videos up to 50 MB each · stored locally until you approve processing</p>
+        <p className="text-[11px] text-muted mt-2">
+          Stored locally in your browser session · never transmitted without provider connection
+        </p>
       </div>
+
       {files.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5">
           {files.map((item) => (
-            <article key={item.id} className="relative bg-forest overflow-hidden aspect-[4/5]">
+            <article key={item.id} className="relative bg-forest overflow-hidden aspect-[4/5] border border-line">
               {item.file.type.startsWith("video/") ? (
                 <video src={item.url} controls muted playsInline className="w-full h-full object-cover" />
               ) : (
                 <img src={item.url} alt={item.file.name} className="w-full h-full object-cover" />
               )}
-              <button type="button" onClick={() => removeFile(item.id)} aria-label={`Remove ${item.file.name}`} className="absolute top-2 right-2 bg-forest/85 text-ivory p-1.5"><X size={14} /></button>
-              <p className="absolute bottom-0 inset-x-0 bg-forest/80 text-ivory text-[10px] p-2 truncate">{item.file.name}</p>
+              <button
+                type="button"
+                onClick={() => removeFile(item.id)}
+                aria-label={`Remove ${item.file.name}`}
+                className="absolute top-2 right-2 bg-forest/85 text-ivory p-1.5 hover:bg-forest"
+              >
+                <X size={14} />
+              </button>
+              <p className="absolute bottom-0 inset-x-0 bg-forest/80 text-ivory text-[10px] p-2 truncate">
+                {item.file.name}
+              </p>
             </article>
           ))}
         </div>
       )}
-      {files.length > 0 && <button type="button" onClick={clearFiles} className="text-xs text-muted mt-4 underline underline-offset-4"><Trash2 size={13} className="inline mr-1" />Clear all</button>}
-      <label className="flex gap-3 mt-7 text-sm text-muted leading-6">
-        <input
-          type="checkbox"
-          checked={consent}
-          onChange={(event) => setConsent(event.target.checked)}
-          className="mt-1"
-        />
-        I understand this is a visual preview and I explicitly consent to
-        sending these selected files to a configured provider if I approve a
-        future processing step.
-      </label>
-      <button
-        disabled={!consent || !files.length}
-        className="bg-forest text-ivory disabled:opacity-40 px-5 py-3 text-xs mt-7"
-      >
-        {consent && files.length ? "Preview ready for provider review" : "Select files to continue"}
-      </button>
-      <div className="flex gap-2 items-center text-xs text-muted mt-6">
-        <ShieldCheck size={15} className="text-bronze" />
-        Files remain local until an explicit provider action is connected.
+
+      {files.length > 0 && (
+        <button
+          type="button"
+          onClick={clearFiles}
+          className="text-xs text-muted mt-4 hover:text-forest transition-colors inline-flex items-center gap-1"
+        >
+          <Trash2 size={13} />
+          Clear all reference files
+        </button>
+      )}
+
+      <div className="mt-8 pt-6 border-t border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex gap-2 items-center text-xs text-muted">
+          <ShieldCheck size={16} className="text-bronze shrink-0" />
+          <span>Files never leave this browser device.</span>
+        </div>
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className="bg-forest/20 text-forest/50 cursor-not-allowed px-5 py-2.5 text-xs font-medium border border-forest/15"
+          title="Virtual try-on model provider is not yet connected"
+        >
+          AI Try-On (Provider Coming Soon)
+        </button>
       </div>
     </div>
   );

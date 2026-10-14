@@ -15,6 +15,8 @@ export type OutfitPiece = {
   owned: boolean;
   note: string;
   product?: ProductReference;
+  userImageUrl?: string;
+  wardrobeItemId?: string;
 };
 
 export type OutfitContext = {
@@ -63,13 +65,15 @@ export const outfitSchema = z.object({
       retailer: z.string().optional(),
       price: z.object({ amount: z.number(), currency: z.string(), verified: z.boolean() }).optional(),
     }).optional(),
+    userImageUrl: z.string().optional(),
+    wardrobeItemId: z.string().optional(),
   })),
   version: z.number().int().positive(),
   priceType: z.enum(["illustrative", "verified"]),
 });
 
 export const defaultOutfitContext: OutfitContext = {
-  occasion: "Church",
+  occasion: "",
   budget: "£150–£300",
   styles: ["Tailored / elegant", "Quiet luxury", "Smart casual"],
   wardrobe: [],

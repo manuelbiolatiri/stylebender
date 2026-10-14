@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Camera, ImagePlus, RotateCcw, Trash2 } from "lucide-react";
+import { Camera, Check, Edit3, ImagePlus, RotateCcw, Trash2, X } from "lucide-react";
 import {
   deleteWardrobeItem,
   deleteWardrobeItems,
   getWardrobeItems,
   getWardrobeMedia,
   saveWardrobeItem,
+  updateWardrobeItem,
   type WardrobeItem,
 } from "@/lib/wardrobe";
 import { demoWardrobe, importDemoWardrobe } from "@/lib/demo-wardrobe";
@@ -21,12 +22,24 @@ const categories = [
   "Accessories",
   "Yoruba attire",
 ];
+const filterOptions = ["All", ...categories];
+
 type Preview = WardrobeItem & { url: string };
 
 export function WardrobePanel() {
   const [items, setItems] = useState<Preview[]>([]);
-  const [category, setCategory] = useState("Tops");
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [uploadCategory, setUploadCategory] = useState("Tops");
   const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<Preview | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    category: "Tops",
+    colour: "",
+    material: "",
+  });
+
   async function refresh() {
     const records = await getWardrobeItems();
     const next: Preview[] = [];
@@ -36,41 +49,118 @@ export function WardrobePanel() {
     }
     setItems(next);
   }
+
   useEffect(() => {
     refresh();
     return () => items.forEach((item) => URL.revokeObjectURL(item.url));
   }, []);
+
   async function onFile(file?: File) {
-    if (!file || !file.type.startsWith("image/") || file.size > 8 * 1024 * 1024)
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setFeedback({ type: "error", message: "Please select an image file (PNG, JPEG, WebP)." });
       return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setFeedback({ type: "error", message: "Image is too large. Please select a photo under 8 MB." });
+      return;
+    }
     setBusy(true);
-    const item = {
-      id: crypto.randomUUID(),
-      name: file.name.replace(/\.[^.]+$/, ""),
-      category,
-      createdAt: Date.now(),
-    };
-    await saveWardrobeItem(item, file);
-    await refresh();
-    setBusy(false);
+    setFeedback({ type: "info", message: "Adding garment to your local wardrobe…" });
+    try {
+      const rawName = file.name.replace(/\.[^.]+$/, "");
+      const item: WardrobeItem = {
+        id: crypto.randomUUID(),
+        name: rawName,
+        category: uploadCategory,
+        createdAt: Date.now(),
+        source: "user",
+      };
+      await saveWardrobeItem(item, file);
+      await refresh();
+      setFeedback({ type: "success", message: "Garment added to your wardrobe. You can rename or edit details anytime." });
+    } catch {
+      setFeedback({ type: "error", message: "Could not save image to local browser storage." });
+    } finally {
+      setBusy(false);
+    }
   }
-  async function remove(id: string) {
+
+  function startEdit(item: Preview) {
+    setEditingItem(item);
+    setEditForm({
+      name: item.name,
+      category: item.category,
+      colour: item.colour ?? "",
+      material: item.material ?? "",
+    });
+  }
+
+  async function saveEdit() {
+    if (!editingItem) return;
+    const trimmed = editForm.name.trim();
+    if (!trimmed) {
+      setFeedback({ type: "error", message: "Garment name cannot be empty." });
+      return;
+    }
+    setBusy(true);
+    try {
+      const updated: WardrobeItem = {
+        ...editingItem,
+        name: trimmed,
+        category: editForm.category,
+        colour: editForm.colour.trim() || undefined,
+        material: editForm.material.trim() || undefined,
+      };
+      await updateWardrobeItem(updated);
+      await refresh();
+      setEditingItem(null);
+      setFeedback({ type: "success", message: "Garment details updated successfully." });
+    } catch {
+      setFeedback({ type: "error", message: "Failed to update garment details." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(id: string, name: string) {
     await deleteWardrobeItem(id);
     setItems((current) => current.filter((item) => item.id !== id));
+    setFeedback({ type: "info", message: `Removed "${name}" from your wardrobe.` });
   }
+
   async function loadDemo() {
     setBusy(true);
-    await importDemoWardrobe();
-    await refresh();
-    setBusy(false);
+    setFeedback({ type: "info", message: "Importing sample wardrobe pieces…" });
+    try {
+      await importDemoWardrobe();
+      await refresh();
+      setFeedback({ type: "success", message: `Loaded ${demoWardrobe.length} sample coordinated pieces.` });
+    } catch {
+      setFeedback({ type: "error", message: "Could not load sample wardrobe pieces." });
+    } finally {
+      setBusy(false);
+    }
   }
+
   async function resetDemo() {
     setBusy(true);
-    const demoIds = (await getWardrobeItems()).filter((item) => item.source === "demo" || item.id.startsWith("demo-")).map((item) => item.id);
-    await deleteWardrobeItems(demoIds);
-    await refresh();
-    setBusy(false);
+    try {
+      const demoIds = (await getWardrobeItems())
+        .filter((item) => item.source === "demo" || item.id.startsWith("demo-"))
+        .map((item) => item.id);
+      await deleteWardrobeItems(demoIds);
+      await refresh();
+      setFeedback({ type: "info", message: "Sample wardrobe reset. Your personal uploads remain." });
+    } catch {
+      setFeedback({ type: "error", message: "Could not reset sample wardrobe." });
+    } finally {
+      setBusy(false);
+    }
   }
+
+  const visibleItems = activeFilter === "All" ? items : items.filter((item) => item.category === activeFilter);
+
   return (
     <div className="mt-10 max-w-5xl">
       <div className="bg-paper border border-line p-6 lg:p-8">
@@ -85,72 +175,260 @@ export function WardrobePanel() {
               provider when you add a piece.
             </p>
           </div>
-          <label className="bg-forest text-ivory px-5 py-3 text-xs cursor-pointer w-fit">
-            {busy ? (
-              "Saving…"
-            ) : (
-              <>
-                <ImagePlus className="inline mr-2" size={15} />
-                Add a piece
-                <input
-                  className="sr-only"
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => onFile(event.target.files?.[0])}
-                />
-              </>
-            )}
-          </label>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="flex items-center gap-2 text-xs border border-line px-3 py-2 bg-ivory/50">
+              <span className="text-muted">Category for upload:</span>
+              <select
+                value={uploadCategory}
+                onChange={(e) => setUploadCategory(e.target.value)}
+                aria-label="Upload category"
+                className="bg-transparent text-forest font-medium focus:outline-none cursor-pointer"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            <label className="bg-forest text-ivory px-5 py-3 text-xs cursor-pointer text-center hover:bg-forest/90 transition-colors">
+              {busy ? (
+                "Processing…"
+              ) : (
+                <>
+                  <ImagePlus className="inline mr-2" size={15} />
+                  Add a piece
+                  <input
+                    className="sr-only"
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => onFile(event.target.files?.[0])}
+                  />
+                </>
+              )}
+            </label>
+          </div>
         </div>
-        {process.env.NODE_ENV !== "production" && <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
-          <button onClick={loadDemo} disabled={busy} className="border border-bronze text-bronze px-4 py-2 text-xs"><RotateCcw className="inline mr-2" size={14} />Load Sample Wardrobe</button>
-          <button onClick={resetDemo} disabled={busy} className="border border-line text-muted px-4 py-2 text-xs">Reset Sample Wardrobe</button>
-          <span className="text-[11px] text-muted self-center">Development fixture · {demoWardrobe.length} coordinated pieces</span>
-        </div>}
-        <div className="flex gap-2 flex-wrap mt-7">
-          {categories.map((name) => (
+
+        {feedback && (
+          <div
+            className={`mt-4 p-3 text-xs flex justify-between items-center ${
+              feedback.type === "error"
+                ? "bg-red-50 text-red-900 border border-red-200"
+                : feedback.type === "success"
+                ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
+                : "bg-forest/5 text-forest border border-forest/15"
+            }`}
+          >
+            <span>{feedback.message}</span>
             <button
-              key={name}
-              onClick={() => setCategory(name)}
-              className={
-                "px-3 py-2 text-xs border " +
-                (category === name
-                  ? "bg-forest text-ivory border-forest"
-                  : "border-line text-muted")
-              }
+              onClick={() => setFeedback(null)}
+              aria-label="Dismiss message"
+              className="ml-3 text-muted hover:text-ink"
             >
-              {name}
+              <X size={14} />
             </button>
-          ))}
+          </div>
+        )}
+
+        {process.env.NODE_ENV !== "production" && (
+          <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-5">
+            <button
+              onClick={loadDemo}
+              disabled={busy}
+              className="border border-bronze text-bronze px-4 py-2 text-xs hover:bg-bronze/10 transition-colors"
+            >
+              <RotateCcw className="inline mr-2" size={14} />
+              Load Sample Wardrobe
+            </button>
+            <button
+              onClick={resetDemo}
+              disabled={busy}
+              className="border border-line text-muted px-4 py-2 text-xs hover:text-forest transition-colors"
+            >
+              Reset Sample Wardrobe
+            </button>
+            <span className="text-[11px] text-muted self-center">
+              Development fixture · {demoWardrobe.length} coordinated pieces
+            </span>
+          </div>
+        )}
+
+        <div className="mt-7">
+          <p className="text-[11px] uppercase tracking-wider text-muted mb-2 font-medium">Browse by category</p>
+          <div className="flex gap-2 flex-wrap">
+            {filterOptions.map((name) => (
+              <button
+                key={name}
+                onClick={() => setActiveFilter(name)}
+                className={
+                  "px-3 py-2 text-xs border transition-colors " +
+                  (activeFilter === name
+                    ? "bg-forest text-ivory border-forest"
+                    : "border-line text-muted hover:text-forest")
+                }
+              >
+                {name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {editingItem && (
+        <div className="mt-4 bg-paper border-2 border-forest p-6 shadow-xl">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="uppercase tracking-[.25em] text-[10px] text-bronze">Garment details</p>
+              <h3 className="serif text-2xl mt-1">Edit garment</h3>
+            </div>
+            <button
+              onClick={() => setEditingItem(null)}
+              aria-label="Cancel editing"
+              className="text-muted hover:text-forest p-1"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 mt-6">
+            <div className="aspect-[4/5] bg-forest/5 border border-line overflow-hidden max-h-64">
+              <img src={editingItem.url} alt={editingItem.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-muted mb-1 font-medium">Garment name</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="e.g. Navy hopsack blazer"
+                  aria-label="Garment name"
+                  className="w-full border border-line bg-transparent px-3 py-2 text-sm focus:border-forest outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-muted mb-1 font-medium">Category</label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  aria-label="Category"
+                  className="w-full border border-line bg-transparent px-3 py-2 text-sm focus:border-forest outline-none"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-muted mb-1 font-medium">Colour</label>
+                  <input
+                    type="text"
+                    value={editForm.colour}
+                    onChange={(e) => setEditForm({ ...editForm, colour: e.target.value })}
+                    placeholder="e.g. Forest green"
+                    aria-label="Colour"
+                    className="w-full border border-line bg-transparent px-3 py-2 text-sm focus:border-forest outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted mb-1 font-medium">Material</label>
+                  <input
+                    type="text"
+                    value={editForm.material}
+                    onChange={(e) => setEditForm({ ...editForm, material: e.target.value })}
+                    placeholder="e.g. Wool blend"
+                    aria-label="Material"
+                    className="w-full border border-line bg-transparent px-3 py-2 text-sm focus:border-forest outline-none"
+                  />
+                </div>
+              </div>
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={saveEdit}
+                  disabled={busy}
+                  className="bg-forest text-ivory px-5 py-2.5 text-xs font-medium hover:bg-forest/90 transition-colors"
+                >
+                  <Check className="inline mr-1" size={14} />
+                  Save changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="border border-line px-4 py-2.5 text-xs text-muted hover:text-forest transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {items.length === 0 ? (
-        <div className="border border-dashed border-line p-12 text-center mt-4">
-          <Camera className="mx-auto text-bronze" size={25} />
+        <div className="border border-dashed border-line p-12 text-center mt-4 bg-paper/50">
+          <Camera className="mx-auto text-bronze" size={28} />
           <p className="serif text-2xl mt-4">Nothing in here yet.</p>
-          <p className="text-muted text-sm mt-2">
-            Start with a favourite shirt, shoe, or full outfit.
+          <p className="text-muted text-sm mt-2 max-w-sm mx-auto">
+            Upload photos of your favourite shirts, jackets, trousers, or shoes to receive recommendations that prioritize what you already own.
           </p>
+        </div>
+      ) : visibleItems.length === 0 ? (
+        <div className="border border-line p-8 text-center mt-4 bg-paper">
+          <p className="serif text-xl">No garments in category &ldquo;{activeFilter}&rdquo;</p>
+          <p className="text-muted text-xs mt-2">
+            Select &ldquo;All&rdquo; to view your full collection or add a piece under this category.
+          </p>
+          <button
+            onClick={() => setActiveFilter("All")}
+            className="mt-4 border border-line px-4 py-2 text-xs text-forest hover:border-forest"
+          >
+            Show all garments
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-          {items.map((item) => (
-            <article key={item.id} className="bg-paper border border-line">
-              <img
-                src={item.url}
-                alt={item.name}
-                className="w-full aspect-[4/5] object-cover"
-              />
-              <div className="p-3">
-                <p className="text-xs truncate">{item.name}</p>
-                <p className="text-[10px] text-muted mt-1">{item.category}</p>
-                {item.source === "demo" && <p className="text-[10px] text-bronze mt-1">Demo data</p>}
+          {visibleItems.map((item) => (
+            <article key={item.id} className="bg-paper border border-line flex flex-col justify-between group hover:border-bronze transition-colors">
+              <div>
+                <div className="relative aspect-[4/5] overflow-hidden bg-forest/5">
+                  <img
+                    src={item.url}
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-102 transition duration-500"
+                  />
+                  {item.source === "demo" && (
+                    <span className="absolute top-2 left-2 bg-paper/90 backdrop-blur-sm text-bronze text-[10px] px-2 py-0.5 border border-line">
+                      Demo data
+                    </span>
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="text-xs font-medium text-forest truncate" title={item.name}>{item.name}</p>
+                  <p className="text-[10px] text-muted mt-1">{item.category}</p>
+                  {(item.colour || item.material) && (
+                    <p className="text-[10px] text-bronze mt-0.5 truncate">
+                      {[item.colour, item.material].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="p-3 pt-0 border-t border-line/60 flex items-center justify-between">
                 <button
-                  onClick={() => remove(item.id)}
-                  aria-label={"Remove " + item.name}
-                  className="text-muted mt-3"
+                  type="button"
+                  onClick={() => startEdit(item)}
+                  aria-label={"Edit " + item.name}
+                  className="inline-flex items-center gap-1 text-[11px] text-muted hover:text-forest transition-colors py-1"
                 >
-                  <Trash2 size={15} />
+                  <Edit3 size={13} />
+                  <span>Edit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(item.id, item.name)}
+                  aria-label={"Remove " + item.name}
+                  className="text-muted hover:text-red-800 transition-colors py-1"
+                >
+                  <Trash2 size={14} />
                 </button>
               </div>
             </article>
