@@ -25,6 +25,10 @@ export async function saveWardrobeItem(item: WardrobeItem, media: Blob) {
   await tx.objectStore("items").put(item);
   await tx.objectStore("media").put(media, item.id);
   await tx.done;
+  if (typeof window !== "undefined") {
+    const current = JSON.parse(localStorage.getItem("stylebender-wardrobe-meta") ?? "[]") as WardrobeItem[];
+    localStorage.setItem("stylebender-wardrobe-meta", JSON.stringify([...current.filter((entry) => entry.id !== item.id), item]));
+  }
 }
 export async function getWardrobeItems() {
   return (await database()).getAll("items");
@@ -38,4 +42,17 @@ export async function deleteWardrobeItem(id: string) {
   await tx.objectStore("items").delete(id);
   await tx.objectStore("media").delete(id);
   await tx.done;
+  if (typeof window !== "undefined") {
+    const current = JSON.parse(localStorage.getItem("stylebender-wardrobe-meta") ?? "[]") as WardrobeItem[];
+    localStorage.setItem("stylebender-wardrobe-meta", JSON.stringify(current.filter((item) => item.id !== id)));
+  }
+}
+
+export function getWardrobeMetadata(): WardrobeItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem("stylebender-wardrobe-meta") ?? "[]") as WardrobeItem[];
+  } catch {
+    return [];
+  }
 }

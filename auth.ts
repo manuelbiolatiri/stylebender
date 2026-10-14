@@ -8,10 +8,8 @@ const allowedEmails = () =>
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [
-    Google,
-    Credentials({
+const credentialsProvider = process.env.AUTH_PASSWORD?.trim()
+  ? Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
@@ -19,19 +17,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const email = String(credentials?.email ?? "").trim().toLowerCase();
         const password = String(credentials?.password ?? "");
+        const configuredPassword = process.env.AUTH_PASSWORD?.trim();
 
         if (
           !email ||
           !allowedEmails().includes(email) ||
-          password !== (process.env.AUTH_PASSWORD ?? "")
+          !configuredPassword ||
+          !password ||
+          password !== configuredPassword
         ) {
           return null;
         }
 
         return { id: email, email, name: email };
       },
-    }),
-  ],
+    })
+  : null;
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [Google, ...(credentialsProvider ? [credentialsProvider] : [])],
   pages: { signIn: "/sign-in" },
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   callbacks: {

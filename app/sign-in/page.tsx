@@ -48,8 +48,14 @@ export default async function SignInPage({
                   Email or password is incorrect.
                 </p>
               ) : null}
-              <input name="email" type="email" required defaultValue="manuelbiolatiri@gmail.com" placeholder="Email" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
-              <input name="password" type="password" placeholder="Password" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
+              <input name="email" type="email" required placeholder="Email" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
+              {process.env.AUTH_PASSWORD?.trim() ? (
+                <input name="password" type="password" required placeholder="Password" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
+              ) : (
+                <p className="border border-amber-800/30 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Email sign-in is unavailable until AUTH_PASSWORD is configured.
+                </p>
+              )}
               <button className="w-full bg-forest text-ivory py-4 text-sm">
                 Sign in with email
               </button>

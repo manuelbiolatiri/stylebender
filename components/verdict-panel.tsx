@@ -1,23 +1,22 @@
 "use client";
 import { ArrowUpRight, Bookmark, Check, Loader2, Sparkles } from "lucide-react";
-import { useState } from "react";
-type Result = {
-  verdict: string;
-  title: string;
-  summary: string;
-  reasons: string[];
-};
+import { useEffect, useState } from "react";
+import { defaultOutfitContext, readCurrentOutfit, saveOutfit, setCurrentOutfit, type OutfitContext, type OutfitVersion } from "@/lib/outfit";
 export function VerdictPanel({
   onSave,
   onAction,
+  context,
 }: {
   onSave: () => void;
   onAction: (action: string) => void;
+  context?: OutfitContext;
 }) {
+  const outfitContext = context ?? defaultOutfitContext;
   const [verdict, setVerdict] = useState("Wear");
   const [saved, setSaved] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
+  const [result, setResult] = useState<OutfitVersion | null>(null);
   const [status, setStatus] = useState("idle");
+  useEffect(() => setResult(readCurrentOutfit()), []);
   async function generate() {
     setStatus("loading");
     try {
@@ -25,15 +24,14 @@ export function VerdictPanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          occasion: "Church",
-          budget: "£150–£300",
-          styles: ["Tailored / elegant", "Quiet luxury", "Smart casual"],
-          request: "Give me one strong look",
+          ...outfitContext,
         }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error);
-      setResult(payload.data);
+      const next: OutfitVersion = { ...payload.data, id: crypto.randomUUID(), createdAt: Date.now(), source: "verdict", context: outfitContext };
+      setCurrentOutfit(next);
+      setResult(next);
       setVerdict(payload.data.verdict);
       setStatus("ready");
     } catch {
@@ -41,6 +39,7 @@ export function VerdictPanel({
     }
   }
   function save() {
+    if (result) saveOutfit(result);
     onSave();
     setSaved(true);
   }

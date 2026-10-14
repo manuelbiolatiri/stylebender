@@ -20,6 +20,8 @@ import { ElevatePanel } from "@/components/elevate-panel";
 import { TryOnPanel } from "@/components/try-on-panel";
 import { StyleIQPanel } from "@/components/style-iq-panel";
 import { HeroMotion } from "@/components/hero-motion";
+import { defaultOutfitContext, type OutfitContext } from "@/lib/outfit";
+import { getWardrobeMetadata } from "@/lib/wardrobe";
 const occasions = [
   ["Church", "Polished, expressive and considered"],
   ["Office Day", "Sharp layers for the working week"],
@@ -112,8 +114,13 @@ export default function Home() {
   const [saved, setSaved] = useState(false);
   const [menu, setMenu] = useState(false);
   const [dna, setDna] = useState(false);
+  const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
   useEffect(() => {
     setSaved(localStorage.getItem("stylebender-saved") === "true");
+    try {
+      const profile = JSON.parse(localStorage.getItem("stylebender-profile") ?? "null");
+      setProfileContext((current) => ({ ...current, styles: profile?.styles ?? current.styles, budget: profile?.budget ?? current.budget, wardrobe: getWardrobeMetadata().map((item) => item.name) }));
+    } catch { /* ignore malformed local metadata */ }
   }, []);
   function save() {
     const next = !saved;
@@ -292,6 +299,7 @@ export default function Home() {
           saved={saved}
           save={save}
           setActive={setActive}
+          context={{ ...profileContext, occasion: selected }}
         />
       )}
       <footer className="px-6 lg:px-20 pb-10 text-xs text-muted flex justify-between">
@@ -305,11 +313,13 @@ function Placeholder({
   saved,
   save,
   setActive,
+  context,
 }: {
   active: string;
   saved: boolean;
   save: () => void;
   setActive: (x: string) => void;
+  context: OutfitContext;
 }) {
   return (
     <main className="px-6 lg:px-20 pt-20 max-w-6xl">
@@ -324,7 +334,7 @@ function Placeholder({
       ) : active === "Profile" ? (
         <StyleProfilePanel />
       ) : active === "Verdict" ? (
-        <VerdictPanel onSave={save} onAction={setActive} />
+        <VerdictPanel onSave={save} onAction={setActive} context={context} />
       ) : active === "Achieve" ? (
         <AchievePanel />
       ) : active === "Elevate" ? (

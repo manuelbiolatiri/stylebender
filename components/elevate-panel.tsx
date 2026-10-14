@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { readCurrentOutfit, saveOutfit, type OutfitVersion } from "@/lib/outfit";
 const directions = [
   "More polished",
   "More date-ready",
@@ -8,19 +9,17 @@ const directions = [
 ];
 export function ElevatePanel() {
   const [direction, setDirection] = useState(directions[0]);
-  const [versions, setVersions] = useState<string[]>([]);
+  const [versions, setVersions] = useState<OutfitVersion[]>([]);
   useEffect(() => {
-    setVersions(
-      JSON.parse(localStorage.getItem("stylebender-elevations") ?? "[]"),
-    );
+    try { setVersions(JSON.parse(localStorage.getItem("stylebender-elevations") ?? "[]") as OutfitVersion[]); } catch { setVersions([]); }
   }, []);
   function create() {
-    const next = [
-      `${direction} · ${new Date().toLocaleDateString("en-GB")}`,
-      ...versions,
-    ].slice(0, 5);
+    const current = readCurrentOutfit();
+    if (!current) return;
+    const next = [{ ...current, id: crypto.randomUUID(), createdAt: Date.now(), source: "elevated" as const, direction, title: `${direction}: ${current.title}` }, ...versions].slice(0, 5);
     setVersions(next);
     localStorage.setItem("stylebender-elevations", JSON.stringify(next));
+    saveOutfit(next[0]);
   }
   return (
     <div className="mt-10 max-w-4xl">
@@ -62,8 +61,8 @@ export function ElevatePanel() {
             Version history
           </p>
           {versions.map((version) => (
-            <p key={version} className="border-b border-line py-3 text-sm">
-              {version}
+            <p key={version.id} className="border-b border-line py-3 text-sm">
+              {version.title} · {new Date(version.createdAt).toLocaleDateString("en-GB")}
             </p>
           ))}
         </div>

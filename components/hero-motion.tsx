@@ -18,5 +18,8 @@ export function HeroMotion() {
     }, ref);
     return () => ctx.revert();
   }, []);
-  return <div ref={ref} aria-hidden="true" className="hidden" />;
+  return <div ref={ref} aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="hero-reveal absolute -right-20 top-16 h-64 w-64 rounded-full border border-bronze/30" />
+    <div className="hero-reveal absolute right-20 top-32 h-32 w-32 rounded-full border border-ivory/20" />
+  </div>;
 }

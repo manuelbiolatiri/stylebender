@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
+import type { OutfitContext } from "@/lib/outfit";
 
 const requestSchema = z.object({
   occasion: z.string().min(1).max(80),
-  budget: z.string().max(40).optional(),
+  budget: z.string().max(40).default("£150–£300"),
   styles: z.array(z.string().max(60)).max(10).default([]),
   wardrobe: z.array(z.string().max(100)).max(30).default([]),
-  request: z.string().max(500).optional(),
+  request: z.string().max(500).default("Recommend one strong outfit"),
 });
 const responseSchema = z.object({
   verdict: z.enum(["Wear", "Change One Piece", "Elevate", "Skip"]),
@@ -38,7 +39,8 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  const prompt = `You are Stylebender, a decisive UK menswear stylist. Return JSON only matching this schema: {"verdict":"Wear|Change One Piece|Elevate|Skip","title":"short title","summary":"concise explanation","reasons":["up to 3 reasons"],"pieces":[{"name":"garment","owned":true,"note":"styling note"}]}. Occasion: ${parsed.data.occasion}. Budget: ${parsed.data.budget ?? "£150–£300"}. Confirmed styles: ${parsed.data.styles.join(", ") || "not yet confirmed"}. Wardrobe: ${parsed.data.wardrobe.join(", ") || "none provided"}. User request: ${parsed.data.request ?? "Recommend one strong outfit"}. Never claim live prices, weather, physical fit, or real product availability.`;
+  const context: OutfitContext = parsed.data;
+  const prompt = `You are Stylebender, a decisive UK menswear stylist. Return JSON only matching this schema: {"verdict":"Wear|Change One Piece|Elevate|Skip","title":"short title","summary":"concise explanation","reasons":["up to 3 reasons"],"pieces":[{"name":"garment","owned":true,"note":"styling note"}]}. Occasion: ${context.occasion}. Budget: ${context.budget ?? "£150–£300"}. Confirmed styles: ${context.styles.join(", ") || "not yet confirmed"}. Owned wardrobe items: ${context.wardrobe.join(", ") || "none provided"}. User request: ${context.request ?? "Recommend one strong outfit"}. Mark a piece owned only when it matches an item in the supplied wardrobe. Never claim live prices, weather, physical fit, or real product availability.`;
   const result = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
     {
