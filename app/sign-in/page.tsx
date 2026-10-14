@@ -1,11 +1,15 @@
 import { auth, signIn } from "@/auth";
+import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
   const session = await auth();
   if (session?.user) redirect("/");
+  const error = (await searchParams)?.error;
   const configured = Boolean(
-    process.env.AUTH_GOOGLE_ID &&
-    process.env.AUTH_GOOGLE_SECRET &&
     process.env.AUTH_SECRET,
   );
   return (
@@ -20,21 +24,52 @@ export default async function SignInPage() {
           Save your looks, build your wardrobe and make your style yours.
         </p>
         {configured ? (
-          <form
-            action={async () => {
-              "use server";
-              await signIn("google", { redirectTo: "/" });
-            }}
-          >
-            <button className="w-full bg-forest text-ivory py-4 mt-8 text-sm">
-              Continue with Google
-            </button>
-          </form>
+          <>
+            <form
+              action={async (formData) => {
+                "use server";
+                try {
+                  await signIn("credentials", {
+                    email: formData.get("email"),
+                    password: formData.get("password"),
+                    redirectTo: "/",
+                  });
+                } catch (caught) {
+                  if (caught instanceof AuthError) {
+                    redirect("/sign-in?error=invalid-credentials");
+                  }
+                  throw caught;
+                }
+              }}
+              className="mt-8 space-y-3"
+            >
+              {error === "invalid-credentials" ? (
+                <p className="border border-red-800/30 bg-red-50 px-4 py-3 text-sm text-red-900">
+                  Email or password is incorrect.
+                </p>
+              ) : null}
+              <input name="email" type="email" required defaultValue="manuelbiolatiri@gmail.com" placeholder="Email" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
+              <input name="password" type="password" placeholder="Password" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
+              <button className="w-full bg-forest text-ivory py-4 text-sm">
+                Sign in with email
+              </button>
+            </form>
+            {process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET ? (
+              <form
+                action={async () => {
+                  "use server";
+                  await signIn("google", { redirectTo: "/" });
+                }}
+              >
+                <button className="w-full border border-forest text-forest py-4 mt-3 text-sm">
+                  Continue with Google
+                </button>
+              </form>
+            ) : null}
+          </>
         ) : (
           <div className="mt-8 border border-line p-4 text-sm text-muted leading-6">
-            Google sign-in is not configured yet. Add{" "}
-            <code>AUTH_GOOGLE_ID</code>, <code>AUTH_GOOGLE_SECRET</code> and{" "}
-            <code>AUTH_SECRET</code> to your server environment.
+            Add <code>AUTH_SECRET</code> to your server environment.
           </div>
         )}
         <a href="/" className="block text-center text-xs text-muted mt-7">
