@@ -16,10 +16,13 @@
 html {
   background: var(--ivory);
   color: var(--ink);
+  scroll-behavior: smooth;
 }
 body {
   margin: 0;
   font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
 }
 .display,
 .serif {
@@ -39,7 +42,28 @@ a:focus-visible {
   outline-offset: 3px;
 }
 .serif {
-  font-family: Georgia, serif;
+  font-family: "Bodoni 72", "Didot", "Iowan Old Style", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+.display {
+  font-family: "Bodoni 72", "Didot", "Iowan Old Style", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.055em;
+}
+.hero-shell { isolation: isolate; }
+.hero-shell::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 18%;
+  background: linear-gradient(transparent, rgba(20, 37, 30, 0.45));
+  pointer-events: none;
+}
+.editorial-rule { border-color: color-mix(in srgb, var(--bronze) 40%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 .grain {
   background-image: linear-gradient(

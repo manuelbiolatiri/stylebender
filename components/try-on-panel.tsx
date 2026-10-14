@@ -1,11 +1,16 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { ShieldCheck, Upload } from "lucide-react";
 export function TryOnPanel() {
   const [consent, setConsent] = useState(false);
   const [file, setFile] = useState<string | null>(null);
   return (
     <div className="mt-10 max-w-3xl bg-paper border border-line p-6 lg:p-8">
+      <div className="relative h-52 overflow-hidden -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 mb-8">
+        <Image src="/fitting-room-editorial.jpg" alt="Editorial fitting room with mirrored styling view" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-forest/70 to-transparent" />
+      </div>
       <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
         Visual preview
       </p>

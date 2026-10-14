@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import {
   ArrowUpRight,
   Bookmark,
@@ -23,10 +24,10 @@ import { HeroMotion } from "@/components/hero-motion";
 import { defaultOutfitContext, type OutfitContext } from "@/lib/outfit";
 import { getWardrobeMetadata } from "@/lib/wardrobe";
 const occasions = [
-  ["Church", "Polished, expressive and considered"],
-  ["Office Day", "Sharp layers for the working week"],
-  ["Date Night", "A little more intent, never overdone"],
-];
+  ["Church", "Polished, expressive and considered", "/sunday-menswear-editorial.jpg"],
+  ["Office Day", "Sharp layers for the working week", "/london-menswear-editorial.jpg"],
+  ["Date Night", "A little more intent, never overdone", "/evening-menswear-editorial.jpg"],
+] as const;
 const tips = [
   [
     "The quiet flex",
@@ -79,7 +80,7 @@ function Nav({
         <div className="flex items-center gap-4">
           <AuthButton />
           <button
-            className="border border-ivory/30 rounded-xl px-3 py-2 text-xs text-ivory/80 hover:border-bronze hover:text-bronze transition-colors"
+            className="border border-forest/15 rounded-xl px-3 py-2 text-xs text-forest/75 hover:border-bronze hover:text-bronze transition-colors"
             onClick={() => setActive("Profile")}
           >
             <UserRound size={15} className="inline mr-2" />
@@ -159,19 +160,15 @@ export default function Home() {
       </header>
       {active === "Discover" ? (
         <main>
-          <HeroMotion />
-          <section className="relative overflow-hidden mx-4 lg:mx-8 mt-8 min-h-[680px] bg-forest text-ivory px-6 pt-14 lg:px-20 lg:pt-28 max-w-[1500px] mx-auto rounded-[2rem]">
-            <img
-              src="/editorial-hero.png"
-              alt="A model wearing a forest overshirt in a cinematic studio"
-              className="absolute inset-0 w-full h-full object-cover object-center opacity-80"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-forest via-forest/70 to-transparent" />
-            <div className="relative z-10 max-w-2xl">
-              <p className="text-bronze uppercase tracking-[.25em] text-[10px]">
-                Tuesday, 13 October · London
+          <section className="hero-shell relative overflow-hidden mt-5 min-h-[720px] bg-forest text-ivory px-6 pt-20 md:px-12 lg:px-20 lg:pt-32 max-w-[1600px] mx-auto">
+            <Image src="/stylebender-hero-campaign.jpg" alt="Model in a forest green tailored jacket" fill priority sizes="100vw" className="hero-image absolute inset-0 object-cover object-[62%_center]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,37,30,.98)_0%,rgba(20,37,30,.82)_32%,rgba(20,37,30,.2)_72%,rgba(20,37,30,.12)_100%)]" />
+            <HeroMotion />
+            <div className="relative z-10 max-w-2xl hero-reveal">
+              <p className="eyebrow text-bronze">
+                The London edit · 2026
               </p>
-              <h1 className="serif text-5xl lg:text-7xl leading-[.95] mt-5 max-w-2xl">
+              <h1 className="display text-6xl md:text-7xl lg:text-[7.5rem] leading-[.86] mt-5 max-w-3xl">
                 Discover your style.
                 <br />
                 <span className="text-ivory/55">Make it yours.</span>
@@ -180,26 +177,28 @@ export default function Home() {
                 Luxury-inspired menswear, made achievable. Start with the moment
                 you’re dressing for.
               </p>
-              <div className="mt-12 grid md:grid-cols-3 gap-3">
-                {occasions.map(([name, desc]) => (
+              <div className="mt-12 grid md:grid-cols-3 gap-3 max-w-4xl">
+                {occasions.map(([name, desc, image]) => (
                   <button
                     key={name}
                     onClick={() => setSelected(name)}
                     className={
-                      "text-left p-5 border transition " +
+                      "group relative overflow-hidden text-left min-h-44 p-5 border transition " +
                       (selected === name
                         ? "bg-ivory text-forest border-ivory"
                         : "bg-paper/10 text-ivory border-ivory/25 hover:border-bronze")
                     }
                   >
-                    <div className="flex justify-between items-start">
+                    <Image src={image} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" className="absolute inset-0 object-cover opacity-60 transition duration-700 group-hover:scale-105" />
+                    <span className="absolute inset-0 bg-gradient-to-t from-forest/95 via-forest/30 to-transparent" />
+                    <div className="relative z-10 flex justify-between items-start">
                       <span className="serif text-2xl">{name}</span>
                       <ArrowUpRight size={18} />
                     </div>
                     <p
                       className={
-                        "text-xs mt-8 leading-5 " +
-                        (selected === name ? "text-forest/65" : "text-ivory/65")
+                        "relative z-10 text-xs mt-8 leading-5 " +
+                        (selected === name ? "text-forest/65" : "text-ivory/70")
                       }
                     >
                       {desc}
@@ -209,13 +208,9 @@ export default function Home() {
               </div>
             </div>
           </section>
-          <section className="mt-16 lg:mt-24 max-w-[1500px] mx-auto grid lg:grid-cols-[1.2fr_.8fr] gap-5 px-6 lg:px-20">
+          <section className="mt-16 lg:mt-28 max-w-[1500px] mx-auto grid md:grid-cols-2 lg:grid-cols-[1.2fr_.8fr] gap-5 px-6 md:px-10 lg:px-20">
             <div className="relative min-h-[390px] overflow-hidden bg-forest grain">
-              <img
-                src="/hero-spiral-hires.webp"
-                alt="Abstract editorial spiral artwork"
-                className="absolute inset-0 w-full h-full object-cover opacity-75 mix-blend-screen"
-              />
+              <Image src="/menswear-outfit-flatlay.jpg" alt="Forest tailoring and charcoal trousers laid out together" fill sizes="(max-width: 1024px) 100vw, 60vw" className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-screen" />
               <div className="relative p-7 lg:p-10 h-full flex flex-col justify-end text-ivory">
                 <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
                   Your next move

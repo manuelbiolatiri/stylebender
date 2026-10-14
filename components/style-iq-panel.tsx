@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 export function StyleIQPanel() {
   const [answer, setAnswer] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -10,6 +11,9 @@ export function StyleIQPanel() {
   }
   return (
     <div className="mt-10 max-w-3xl bg-paper border border-line p-6 lg:p-8">
+      <div className="relative h-44 overflow-hidden -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 mb-8">
+        <Image src="/menswear-color-theory.jpg" alt="Folded menswear colour palette" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
+      </div>
       <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
         Style IQ / 01
       </p>

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { readCurrentOutfit, saveOutfit, type OutfitVersion } from "@/lib/outfit";
 const directions = [
   "More polished",
@@ -24,6 +25,11 @@ export function ElevatePanel() {
   return (
     <div className="mt-10 max-w-4xl">
       <div className="bg-paper border border-line p-6 lg:p-8">
+        <div className="relative h-52 md:h-64 -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 mb-8 overflow-hidden">
+          <Image src="/style-evolution-diptych.jpg" alt="Two considered outfit directions" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-forest/70 to-transparent" />
+          <span className="absolute bottom-4 left-5 eyebrow text-ivory">Elevate / version study</span>
+        </div>
         <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
           Refine your direction
         </p>
