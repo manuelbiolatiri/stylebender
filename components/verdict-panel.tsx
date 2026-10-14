@@ -119,7 +119,7 @@ export function VerdictPanel({
           "stylebender-pending-context",
           JSON.stringify({ ...outfitContext, autoGenerate: true }),
         );
-        const callback = "/?view=Verdict";
+        const callback = "/?view=Style%20Me";
         window.location.assign(`/sign-in?callbackUrl=${encodeURIComponent(callback)}`);
         return;
       }
@@ -208,6 +208,37 @@ export function VerdictPanel({
             {result?.summary ??
               "Your personalized outfit is ready to be styled. Gemini creates a cohesive look matching your occasion, wardrobe, and style preferences."}
           </p>
+
+          {result && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-6 max-w-md" aria-label="Recommended outfit garments">
+              {result.pieces.map((piece) => {
+                const resolved = resolvedImages[piece.name];
+                const image = resolved?.url ?? piece.product?.image;
+                return (
+                  <button
+                    key={`visual-${piece.name}`}
+                    type="button"
+                    onClick={() => {
+                      setSwapPieceName(piece.name);
+                      setVerdict("Change One Piece");
+                    }}
+                    className="group text-left"
+                    aria-label={`Change ${piece.name}`}
+                  >
+                    <div className="aspect-square overflow-hidden border border-ivory/20 bg-ivory/10">
+                      {image ? (
+                        <img src={image} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-ivory/40"><Shirt size={18} /></div>
+                      )}
+                    </div>
+                    <span className="block text-[9px] leading-3 text-ivory/75 mt-1 line-clamp-2">{piece.name}</span>
+                    <span className="block text-[9px] text-bronze mt-0.5">{piece.owned ? "Yours" : "Reference"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {wearConfirmed && (
             <div className="mt-5 bg-ivory/10 border border-ivory/25 px-4 py-3 text-xs text-ivory flex items-center gap-2">
@@ -352,8 +383,14 @@ export function VerdictPanel({
                   const isUserImage = resolved?.isUser;
 
                   return (
-                    <div
+                    <button
                       key={piece.name}
+                      type="button"
+                      onClick={() => {
+                        setSwapPieceName(piece.name);
+                        setVerdict("Change One Piece");
+                      }}
+                      aria-label={`Change ${piece.name}`}
                       className="flex gap-3 items-center border border-line p-2.5 bg-ivory/30 hover:border-bronze transition-colors"
                     >
                       <div className="relative w-14 h-14 shrink-0 overflow-hidden bg-forest/5 border border-line">
@@ -384,7 +421,7 @@ export function VerdictPanel({
                           </p>
                         )}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

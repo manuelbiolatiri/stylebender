@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 30_000,
   fullyParallel: true,
   reporter: process.env.CI ? 'line' : 'list',
-  use: { baseURL: 'http://localhost:4000', trace: 'on-first-retry', screenshot: 'only-on-failure' },
-  webServer: { command: 'yarn dev', url: 'http://localhost:4000', reuseExistingServer: false, timeout: 120_000 },
+  use: { baseURL: 'http://localhost:2000', trace: 'on-first-retry', screenshot: 'only-on-failure' },
+  webServer: { command: 'yarn dev', url: 'http://localhost:2000', reuseExistingServer: false, timeout: 120_000 },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 });

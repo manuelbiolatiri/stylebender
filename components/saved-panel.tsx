@@ -73,6 +73,17 @@ export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }
 
                 {item.pieces?.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-line/60">
+                    <div className="grid grid-cols-4 gap-2 mb-3">
+                      {item.pieces.slice(0, 4).map((piece) => (
+                        <div key={`image-${piece.name}`} className="aspect-square overflow-hidden bg-forest/5 border border-line" title={piece.name}>
+                          {piece.product?.image ? (
+                            <img src={piece.product.image} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-forest/35"><Shirt size={16} /></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                     <p className="text-[10px] uppercase tracking-wider text-muted font-medium mb-2">Pieces ({item.pieces.length})</p>
                     <div className="flex flex-wrap gap-1.5">
                       {item.pieces.map((p) => (

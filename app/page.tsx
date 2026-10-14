@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ArrowUpRight,
@@ -48,9 +48,16 @@ function Nav({
   active: string;
   setActive: (x: string) => void;
 }) {
+  const tabs = [
+    ["Discover", Compass],
+    ["Style Me", Sparkles],
+    ["Wardrobe", Shirt],
+    ["Saved", Bookmark],
+  ] as const;
+
   return (
     <>
-      <div className="hidden lg:flex sticky top-5 z-30 mx-auto mt-5 max-w-5xl h-[72px] rounded-2xl bg-paper/75 backdrop-blur-2xl border border-forest/10 text-forest items-center justify-between px-5 shadow-[0_18px_45px_rgba(20,37,30,0.14)] supports-[backdrop-filter]:bg-paper/60">
+      <header className="hidden lg:flex sticky top-5 z-30 mx-auto mt-5 max-w-5xl h-[72px] rounded-2xl bg-paper/75 backdrop-blur-2xl border border-forest/10 text-forest items-center justify-between px-5 shadow-[0_18px_45px_rgba(20,37,30,0.14)] supports-[backdrop-filter]:bg-paper/60">
         <div className="flex items-center gap-3">
           <img
             src="/stylebender-mark.png"
@@ -60,11 +67,7 @@ function Nav({
           <span className="tracking-[.22em] text-[11px] font-semibold">STYLEBENDER</span>
         </div>
         <div className="flex items-center gap-8">
-          {[
-            ["Discover", Compass],
-            ["Wardrobe", Shirt],
-            ["Saved", Bookmark],
-          ].map(([label, I]: any) => (
+          {tabs.map(([label, I]) => (
             <button
               key={label}
               aria-label={label}
@@ -94,19 +97,29 @@ function Nav({
             Profile
           </button>
         </div>
-      </div>
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 h-[84px] rounded-t-[1.75rem] bg-paper/95 backdrop-blur-xl border-t border-line flex justify-around items-center px-2 z-20 shadow-[0_-12px_35px_rgba(20,37,30,0.12)]">
-        {[
-          ["Discover", Compass],
-          ["Wardrobe", Shirt],
-          ["Saved", Bookmark],
-          ["Profile", UserRound],
-        ].map(([label, I]: any) => (
+      </header>
+      <header className="lg:hidden shrink-0 h-[58px] bg-forest text-ivory flex items-center justify-between px-5 z-30">
+        <button type="button" onClick={() => setActive("Discover")} className="flex items-center gap-2" aria-label="Stylebender home">
+          <img src="/stylebender-mark.png" alt="" className="h-8 w-8 rounded-lg object-cover" />
+          <span className="tracking-[.22em] text-[10px] font-semibold">STYLEBENDER</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActive("Profile")}
+          aria-label="Open Profile"
+          className={`h-9 w-9 rounded-full border flex items-center justify-center transition-colors ${active === "Profile" ? "border-bronze text-bronze" : "border-ivory/30 text-ivory/80"}`}
+        >
+          <UserRound size={17} />
+        </button>
+      </header>
+      <nav aria-label="Primary" className="mobile-bottom-nav lg:hidden fixed bottom-0 inset-x-0 min-h-[72px] rounded-t-[1.5rem] bg-paper/95 backdrop-blur-xl border-t border-line flex justify-around items-center px-1 z-20 shadow-[0_-12px_35px_rgba(20,37,30,0.12)]">
+        {tabs.map(([label, I]) => (
           <button
             key={label}
             onClick={() => setActive(label)}
             aria-label={label}
-            className={`min-w-[68px] min-h-[58px] rounded-2xl flex flex-col items-center justify-center transition-colors ${
+            aria-current={active === label ? "page" : undefined}
+            className={`min-w-[68px] min-h-[54px] rounded-2xl flex flex-col items-center justify-center transition-colors ${
               active === label ? "text-forest bg-forest/10 font-medium" : "text-muted"
             }`}
           >
@@ -127,6 +140,8 @@ export default function Home() {
   const [autoGenerateVerdict, setAutoGenerateVerdict] = useState(false);
   const [dna, setDna] = useState(false);
   const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
+  const screenRef = useRef<HTMLDivElement>(null);
+  const scrollPositions = useRef<Record<string, number>>({});
 
   function setSelected(occasion: string) {
     setSelectedState(occasion);
@@ -136,10 +151,11 @@ export default function Home() {
   }
 
   function setActive(next: string, replace = false) {
+    if (screenRef.current) scrollPositions.current[active] = screenRef.current.scrollTop;
     setActiveState(next);
     if (typeof window !== "undefined") {
       const params = new URLSearchParams();
-      if (next !== "Discover") params.set("view", next);
+      if (next !== "Discover") params.set("view", next === "Style Me" ? "Style Me" : next);
       if (selected) params.set("occasion", selected);
       const query = params.toString();
       const url = query ? `/?${query}` : "/";
@@ -147,12 +163,18 @@ export default function Home() {
     }
   }
 
+  useEffect(() => {
+    const screen = screenRef.current;
+    if (!screen) return;
+    screen.scrollTop = scrollPositions.current[active] ?? 0;
+  }, [active]);
+
   function startStyling(occasionToStyle: string) {
     const target = occasionToStyle.trim();
     if (!target) return;
     setSelected(target);
     setAutoGenerateVerdict(true);
-    setActive("Verdict");
+    setActive("Style Me");
   }
 
   // Load URL state & popstate listener
@@ -161,7 +183,7 @@ export default function Home() {
       const params = new URLSearchParams(window.location.search);
       const view = params.get("view");
       const occasionParam = params.get("occasion");
-      if (view) setActiveState(view);
+      if (view) setActiveState(view === "Verdict" ? "Style Me" : view);
       if (occasionParam) {
         setSelectedState(occasionParam);
       } else {
@@ -235,11 +257,16 @@ export default function Home() {
 
   return (
     <>
-      <div className="min-h-screen bg-ivory pb-24 lg:pb-0">
+      <div className="mobile-app-shell bg-ivory">
         <Nav active={active} setActive={setActive} />
-        {active === "Discover" ? (
-          <main>
-            <section className="hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[640px] md:min-h-[700px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-8 md:px-12 lg:px-20 lg:pt-24 max-w-[1600px] mx-auto pb-16">
+        <div
+          ref={screenRef}
+          onScroll={(event) => { scrollPositions.current[active] = event.currentTarget.scrollTop; }}
+          className="mobile-screen-scroll flex-1 lg:overflow-visible"
+        >
+          {active === "Discover" ? (
+          <main className="pb-8 lg:pb-0">
+            <section className="hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[520px] sm:min-h-[560px] md:min-h-[700px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-6 md:px-12 lg:px-20 lg:pt-24 max-w-[1600px] mx-auto pb-10 lg:pb-16">
               <Image
                 src="/stylebender-hero-campaign.jpg"
                 alt="Model in a forest green tailored jacket"
@@ -275,7 +302,7 @@ export default function Home() {
                     Select an occasion or enter your own
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-3xl">
+                  <div className="grid grid-cols-3 gap-2 max-w-3xl">
                     {occasions.map(([name, desc, image]) => {
                       const isChosen = selected === name;
                       return (
@@ -302,7 +329,7 @@ export default function Home() {
                           />
                           <span className="absolute inset-0 bg-gradient-to-t from-forest/95 via-forest/40 to-transparent" />
                           <div className="relative z-10 flex justify-between items-start">
-                            <span className="serif text-xl sm:text-2xl">{name}</span>
+                            <span className="serif text-base sm:text-2xl">{name}</span>
                             <ArrowUpRight size={16} />
                           </div>
                           <p
@@ -475,7 +502,7 @@ export default function Home() {
               )}
             </section>
           </main>
-        ) : (
+          ) : (
           <Placeholder
             active={active}
             setActive={setActive}
@@ -483,12 +510,13 @@ export default function Home() {
             context={{ ...profileContext, occasion: selected }}
             autoGenerate={autoGenerateVerdict}
           />
-        )}
+          )}
 
-        <footer className="px-6 lg:px-20 pb-10 text-xs text-muted flex justify-between items-center border-t border-line/40 pt-6 mt-12 max-w-[1600px] mx-auto">
+        <footer className="hidden lg:flex px-6 lg:px-20 pb-10 text-xs text-muted justify-between items-center border-t border-line/40 pt-6 mt-12 max-w-[1600px] mx-auto">
           <span>Stylebender · Considered menswear styling</span>
           <span className="text-[11px] text-muted">Privacy first · Private local wardrobe</span>
         </footer>
+        </div>
       </div>
     </>
   );
@@ -530,7 +558,7 @@ function Placeholder({
         <WardrobePanel />
       ) : active === "Profile" ? (
         <StyleProfilePanel />
-      ) : active === "Verdict" ? (
+      ) : active === "Style Me" || active === "Verdict" ? (
         <VerdictPanel
           onAction={setActive}
           context={context}
