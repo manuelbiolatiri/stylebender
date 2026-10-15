@@ -9,7 +9,7 @@ yarn install
 yarn dev
 ```
 
-Copy `.env.example` to `.env` and configure `AUTH_SECRET`, `AUTH_ADMIN_EMAIL`, and `GEMINI_API_KEY` as needed. The default test email is `admin@stylebender.test`; override it with `AUTH_ADMIN_EMAIL` when needed. This owner-only test flow is email-only; failed unknown-email attempts are rate-limited.
+Copy `.env.example` to `.env` and configure `AUTH_SECRET` and `GEMINI_API_KEY` as needed. The owner-only test email is hardcoded as `admin@stylebender.test`. This owner-only test flow is email-only; failed unknown-email attempts are rate-limited.
 
 The landing page and sign-in view are public. Product routes are protected by Auth.js middleware. There is one owner-only Credentials account; sign-up, password reset and Google OAuth are intentionally unavailable in this MVP amendment.
 

@@ -6,6 +6,7 @@ const failedAttempts = new Map<string, { count: number; resetAt: number; blocked
 const MAX_FAILED_ATTEMPTS = 5;
 const FAILURE_WINDOW_MS = 15 * 60 * 1000;
 const BLOCK_MS = 15 * 60 * 1000;
+const ADMIN_EMAIL = "admin@stylebender.test";
 
 const credentialsProvider = Credentials({
       credentials: {
@@ -13,7 +14,7 @@ const credentialsProvider = Credentials({
       },
       async authorize(credentials) {
         const email = String(credentials?.email ?? "").trim().toLowerCase();
-        const adminEmail = (process.env.AUTH_ADMIN_EMAIL ?? "admin@stylebender.test").trim().toLowerCase();
+        const adminEmail = ADMIN_EMAIL;
         const key = email || "unknown";
         const now = Date.now();
         const attempt = failedAttempts.get(key);

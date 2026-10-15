@@ -12,7 +12,7 @@ Non-goals: Google OAuth, multi-user registration, live weather detection, unveri
 
 ## Controlled MVP amendment — authentication, samples and shopping
 
-- Authentication is Auth.js Credentials only, with one configurable administrator email. The owner-only test flow is email-only; password fields, access-code fields, sign-up, password reset and Google OAuth are not supported.
+- Authentication is Auth.js Credentials only, with one hardcoded administrator email (`admin@stylebender.test`). The owner-only test flow is email-only; password fields, access-code fields, sign-up, password reset and Google OAuth are not supported.
 - Rainy, Cold, Mild and Hot sample wardrobes contain curated local references. Selecting one changes Gemini context only; it does not overwrite or mark the user's actual wardrobe as owned. Individual photographed sample pieces can be added explicitly.
 - Shop this Look is contextual and secondary. No retailer feed or marketplace integration is connected in this sprint, so the product shows unavailable states until a permitted, verified UK listing source is approved.
 

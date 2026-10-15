@@ -10,4 +10,4 @@ V1 is a Next.js App Router client-first shell. Small preferences and saved IDs u
 
 ## Release readiness
 
-Set `AUTH_SECRET`, `AUTH_ADMIN_EMAIL`, and provider keys server-side only before enabling AI. No retailer integration is connected: `getVerifiedRetailerListings` intentionally returns no listings until a permitted UK feed or approved integration is configured and verified. Build with `yarn build`; deployment is intentionally not performed.
+Set `AUTH_SECRET` and provider keys server-side only before enabling AI. The owner email is hardcoded as `admin@stylebender.test`. No retailer integration is connected: `getVerifiedRetailerListings` intentionally returns no listings until a permitted UK feed or approved integration is configured and verified. Build with `yarn build`; deployment is intentionally not performed.
