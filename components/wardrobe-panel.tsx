@@ -195,7 +195,7 @@ export function WardrobePanel() {
   const visibleItems = activeFilter === "All" ? items : items.filter((item) => item.category === activeFilter);
 
   return (
-    <div className="mt-5 lg:mt-10 max-w-5xl">
+    <div className="wardrobe-panel mt-5 lg:mt-10 max-w-5xl">
       <div className="mb-5 flex rounded-full border border-line bg-paper p-1 max-w-sm" role="tablist" aria-label="Wardrobe views">
         {(["explore", "mine"] as const).map((tab) => (
           <button

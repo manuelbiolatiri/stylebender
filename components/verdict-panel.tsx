@@ -225,7 +225,7 @@ export function VerdictPanel({
   }
 
   return (
-    <div className="mt-8 grid w-full min-w-0 lg:grid-cols-[1.1fr_.9fr] gap-6 max-w-5xl">
+    <div className="verdict-panel mt-8 grid w-full min-w-0 lg:grid-cols-[1.1fr_.9fr] gap-6 max-w-5xl">
       {/* Left Column: Verdict Hero Card */}
       <div className="min-w-0 w-full bg-forest text-ivory min-h-[460px] p-7 lg:p-10 flex flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">

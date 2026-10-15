@@ -57,7 +57,7 @@ export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }
   }
 
   return (
-    <div className="mt-8 max-w-5xl">
+    <div className="saved-panel mt-8 max-w-5xl">
       <div className="flex flex-wrap items-center gap-2 mb-6">
         <span className="text-xs text-muted uppercase tracking-wider mr-2 font-medium">Filter by occasion:</span>
         {occasions.map((occasion) => (
