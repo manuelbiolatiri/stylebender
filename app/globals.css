@@ -79,6 +79,24 @@ body {
 }
 button {
   font: inherit;
+  border-radius: 9999px;
+}
+input,
+select {
+  border-radius: 9999px;
+}
+.bg-paper.border,
+.bg-paper.border-line,
+.bg-paper.border-dashed,
+.bg-forest.border,
+.bg-forest.border-line,
+article.border,
+section.border {
+  border-radius: 1.5rem;
+}
+.bg-paper.border-2,
+.bg-paper.border-\[2px\] {
+  border-radius: 1.5rem;
 }
 button:focus-visible,
 a:focus-visible {

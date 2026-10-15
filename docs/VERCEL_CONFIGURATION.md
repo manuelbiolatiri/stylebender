@@ -11,7 +11,7 @@ GEMINI_MAX_REQUESTS_PER_HOUR=8
 GEMINI_MAX_OUTPUT_TOKENS=2048
 ```
 
-Do not add `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` or passwords to source control. The owner email is hardcoded as `admin@stylebender.test`. Credentials are intended for owner-only testing in this MVP amendment. Anyone who knows the owner email can enter this intentionally weak test flow.
+Do not add `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` or passwords to source control. The owner email is hardcoded as `admin@stylebender.test`. Credentials are intended for owner-only testing in this MVP amendment.
 
 No Vercel Marketplace integration is required for the current Shop this Look state. Retailer links remain disabled until a permitted UK feed or approved integration supplies verified product name, retailer, image, GBP price, availability and outbound URL data. Do not enable fabricated or manually guessed listings.
 

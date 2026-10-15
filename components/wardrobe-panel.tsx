@@ -41,11 +41,13 @@ export function WardrobePanel() {
     material: "",
   });
   const [sampleWeather, setSampleWeather] = useState<SampleWeather>("Mild");
+  const [activeTab, setActiveTab] = useState<"explore" | "mine">("explore");
+  const [confirmingSample, setConfirmingSample] = useState<string | null>(null);
 
   async function refresh() {
     const records = await getWardrobeItems();
     const next: Preview[] = [];
-    for (const item of records) {
+    for (const item of records.filter((record) => record.source !== "demo")) {
       const blob = await getWardrobeMedia(item.id);
       if (blob) next.push({ ...item, url: URL.createObjectURL(blob) });
     }
@@ -56,6 +58,11 @@ export function WardrobePanel() {
     setSampleWeather(readSelectedSampleWeather());
     refresh();
     return () => items.forEach((item) => URL.revokeObjectURL(item.url));
+  }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("stylebender-wardrobe-tab");
+    if (stored === "mine" || stored === "explore") setActiveTab(stored);
   }, []);
 
   async function addSamplePiece(item: (typeof sampleWardrobes)[SampleWeather][number]) {
@@ -73,6 +80,7 @@ export function WardrobePanel() {
       }, await response.blob());
       await refresh();
       setFeedback({ type: "success", message: `${item.name} added to your wardrobe.` });
+      setConfirmingSample(null);
     } catch {
       setFeedback({ type: "error", message: "Could not add this sample garment to your wardrobe." });
     } finally {
@@ -187,7 +195,22 @@ export function WardrobePanel() {
   const visibleItems = activeFilter === "All" ? items : items.filter((item) => item.category === activeFilter);
 
   return (
-    <div className="mt-10 max-w-5xl">
+    <div className="mt-5 lg:mt-10 max-w-5xl">
+      <div className="mb-5 flex rounded-full border border-line bg-paper p-1 max-w-sm" role="tablist" aria-label="Wardrobe views">
+        {(["explore", "mine"] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
+            onClick={() => { setActiveTab(tab); localStorage.setItem("stylebender-wardrobe-tab", tab); }}
+            className={`flex-1 rounded-full px-4 py-2.5 text-[11px] uppercase tracking-[.16em] transition-colors ${activeTab === tab ? "bg-forest text-ivory" : "text-muted hover:text-forest"}`}
+          >
+            {tab === "mine" ? "My Wardrobe" : "Explore"}
+          </button>
+        ))}
+      </div>
+      {activeTab === "mine" && <>
       <div className="bg-paper border border-line p-6 lg:p-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
           <div>
@@ -297,8 +320,9 @@ export function WardrobePanel() {
           </div>
         </div>
       </div>
+      </>}
 
-      <div className="mt-4 bg-forest text-ivory p-6 lg:p-8">
+      {activeTab === "explore" && <div className="mt-4 bg-forest text-ivory p-6 lg:p-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="uppercase tracking-[.25em] text-[10px] text-bronze">Sample wardrobe</p>
@@ -331,15 +355,23 @@ export function WardrobePanel() {
               </div>
               <p className="text-[11px] leading-4 mt-2 line-clamp-2">{item.name}</p>
               <p className="text-[9px] text-bronze mt-1">Sample · {item.category}</p>
-              <button type="button" onClick={() => addSamplePiece(item)} disabled={busy} className="mt-2 text-[10px] border border-ivory/30 px-2 py-1 hover:bg-ivory hover:text-forest disabled:opacity-50">
-                Add to my wardrobe
-              </button>
+              {confirmingSample === item.id ? (
+                <div className="mt-2 space-y-1">
+                  <p className="text-[10px] text-ivory/75">Do you own this garment?</p>
+                  <button type="button" onClick={() => addSamplePiece(item)} disabled={busy} className="text-[10px] border border-ivory px-2 py-1 hover:bg-ivory hover:text-forest disabled:opacity-50">Yes, add it</button>
+                  <button type="button" onClick={() => setConfirmingSample(null)} className="ml-1 text-[10px] text-ivory/70 underline">Cancel</button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setConfirmingSample(item.id)} disabled={busy || !item.image} className="mt-2 text-[10px] border border-ivory/30 px-2 py-1 hover:bg-ivory hover:text-forest disabled:opacity-50">
+                  {item.image ? "I own this" : "Add your own photo"}
+                </button>
+              )}
             </article>
           ))}
         </div>
-      </div>
+      </div>}
 
-      {editingItem && (
+      {activeTab === "mine" && editingItem && (
         <div className="mt-4 bg-paper border-2 border-forest p-6 shadow-xl">
           <div className="flex justify-between items-start">
             <div>
@@ -430,7 +462,7 @@ export function WardrobePanel() {
         </div>
       )}
 
-      {items.length === 0 ? (
+      {activeTab === "mine" && (items.length === 0 ? (
         <div className="border border-dashed border-line p-12 text-center mt-4 bg-paper/50">
           <Camera className="mx-auto text-bronze" size={28} />
           <p className="serif text-2xl mt-4">Nothing in here yet.</p>
@@ -500,7 +532,7 @@ export function WardrobePanel() {
             </article>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }

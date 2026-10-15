@@ -12,7 +12,7 @@ Non-goals: Google OAuth, multi-user registration, live weather detection, unveri
 
 ## Controlled MVP amendment — authentication, samples and shopping
 
-- Authentication is Auth.js Credentials only, with one hardcoded administrator email (`admin@stylebender.test`). The owner-only test flow is email-only; password fields, access-code fields, sign-up, password reset and Google OAuth are not supported.
+- Authentication is Auth.js Credentials only, with one fixed administrator email (`admin@stylebender.test`). The owner-only test flow is email-only; password fields, access-code fields, sign-up, password reset and Google OAuth are not supported.
 - Rainy, Cold, Mild and Hot sample wardrobes contain curated local references. Selecting one changes Gemini context only; it does not overwrite or mark the user's actual wardrobe as owned. Individual photographed sample pieces can be added explicitly.
 - Shop this Look is contextual and secondary. No retailer feed or marketplace integration is connected in this sprint, so the product shows unavailable states until a permitted, verified UK listing source is approved.
 
@@ -22,7 +22,7 @@ Verification status for this amendment:
 - [x] Rainy, Cold, Mild and Hot sample collections are separated from actual wardrobe ownership, persist their selection locally, and support explicit per-item adoption.
 - [x] Shop this Look never fabricates retailer data; the empty verified-listing boundary is covered by mocked browser tests.
 - [x] Mobile sample-wardrobe screenshot captured at 390×844: `docs/screenshots/mobile/weather-sample-rainy-390x844.png`.
-- [ ] Full legacy mobile-shell suite remains unstable at 320×568/375×667 in the existing harness; the failure is in the tab-loop timeout and needs a separate selector/scroll-harness cleanup before release.
+- [ ] Verify owner email sign-in and saved-look persistence across redirect and reload in the target deployment.
 
 ## Three release journeys
 

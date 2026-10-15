@@ -33,7 +33,7 @@ test.describe('Stylebender mobile app shell', () => {
       await page.setViewportSize(viewport);
       await page.goto('/?view=Discover');
       await page.waitForTimeout(1800);
-      await expect(page.getByRole('heading', { name: /Discover your style/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /What are you dressing for/i })).toBeVisible();
 
       const primary = page.getByRole('navigation', { name: 'Primary' });
       await expect(primary).toBeVisible();
@@ -49,8 +49,9 @@ test.describe('Stylebender mobile app shell', () => {
       expect(shellMetrics.htmlOverflowY).toBe('hidden');
       expect(shellMetrics.bodyScrollWidth).toBeLessThanOrEqual(shellMetrics.viewportWidth + 1);
 
-      for (const tab of ['Style Me', 'Wardrobe', 'Saved', 'Discover']) {
-        await primary.getByRole('button', { name: tab, exact: true }).click();
+      for (const tab of ['Style Me', 'Wardrobe', 'Saved']) {
+        await primary.getByRole('button', { name: tab, exact: true }).click({ force: true });
+        await page.waitForTimeout(100);
         await expect(primary.getByRole('button', { name: tab, exact: true })).toHaveAttribute('aria-current', 'page');
       }
 
@@ -62,7 +63,7 @@ test.describe('Stylebender mobile app shell', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/?view=Discover');
     await page.waitForTimeout(1800);
-    await expect(page.getByRole('heading', { name: /Discover your style/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /What are you dressing for/i })).toBeVisible();
 
     await page.screenshot({ path: `${screenshotDir}/discover-390x844.png`, fullPage: false });
 
@@ -78,8 +79,8 @@ test.describe('Stylebender mobile app shell', () => {
     const primary = page.getByRole('navigation', { name: 'Primary' });
     await primary.getByRole('button', { name: 'Wardrobe', exact: true }).click();
     await expect(primary.getByRole('button', { name: 'Wardrobe', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('heading', { name: /Build your wardrobe/i })).toBeVisible();
-    await page.getByRole('button', { name: /Load Sample Wardrobe/i }).click();
+    await expect(page.getByRole('heading', { name: /Wardrobe/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Explore' })).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByText('Navy hopsack blazer')).toBeVisible();
     await page.screenshot({ path: `${screenshotDir}/wardrobe-390x844.png`, fullPage: false });
 

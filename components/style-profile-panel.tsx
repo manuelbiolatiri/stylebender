@@ -31,12 +31,14 @@ const initial: Profile = {
   confirmed: false,
 };
 
-export function StyleProfilePanel() {
+export function StyleProfilePanel({ email }: { email?: string }) {
   const [profile, setProfile] = useState<Profile>(initial);
   const [saved, setSaved] = useState(false);
   useEffect(() => {
     const raw = localStorage.getItem("stylebender-profile");
-    if (raw) setProfile(JSON.parse(raw));
+    if (raw) {
+      try { setProfile(JSON.parse(raw)); } catch { /* keep safe defaults */ }
+    }
   }, []);
   function toggle(key: "styles" | "occasions", value: string) {
     setProfile((current) => ({
@@ -54,7 +56,7 @@ export function StyleProfilePanel() {
     setSaved(true);
   }
   return (
-    <div className="mt-10 max-w-3xl bg-paper border border-line p-6 lg:p-8">
+    <div className="mt-5 lg:mt-10 max-w-3xl bg-paper border border-line p-5 lg:p-8">
       <div className="flex justify-between gap-6">
         <div>
           <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
@@ -66,7 +68,10 @@ export function StyleProfilePanel() {
             at any time.
           </p>
         </div>
-        <span className="text-xs text-muted">Local only</span>
+        <div className="text-right text-xs text-muted">
+          <span className="block">Local only</span>
+          {email ? <span className="block mt-2 text-forest break-all">{email}</span> : <a href="/sign-in" className="block mt-2 text-forest underline underline-offset-4">Sign in</a>}
+        </div>
       </div>
       <fieldset className="mt-8">
         <legend className="text-xs font-bold">What feels like you?</legend>
@@ -145,6 +150,11 @@ export function StyleProfilePanel() {
           No photos or provider calls involved.
         </span>
       </div>
+      {email && (
+        <a href="/logout" className="inline-block mt-7 border border-line px-4 py-2 text-xs text-forest hover:border-forest">
+          Sign out
+        </a>
+      )}
     </div>
   );
 }

@@ -11,9 +11,7 @@ export default async function SignInPage({
   const params = await searchParams;
   const error = params?.error;
   const callbackUrl = params?.callbackUrl?.startsWith("/") ? params.callbackUrl : "/";
-  const configured = Boolean(
-    process.env.AUTH_SECRET,
-  );
+  const configured = Boolean(process.env.AUTH_SECRET);
   return (
     <main className="min-h-screen bg-forest text-ivory flex items-center justify-center px-6">
       <div className="w-full max-w-md bg-paper text-ink p-8 lg:p-12">

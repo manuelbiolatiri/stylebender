@@ -14,12 +14,11 @@ const credentialsProvider = Credentials({
       },
       async authorize(credentials) {
         const email = String(credentials?.email ?? "").trim().toLowerCase();
-        const adminEmail = ADMIN_EMAIL;
         const key = email || "unknown";
         const now = Date.now();
         const attempt = failedAttempts.get(key);
         if (attempt?.blockedUntil && attempt.blockedUntil > now) return null;
-        const valid = email === adminEmail;
+        const valid = email === ADMIN_EMAIL;
         if (!valid) {
           const next = attempt && attempt.resetAt > now
             ? { ...attempt, count: attempt.count + 1 }
@@ -29,7 +28,7 @@ const credentialsProvider = Credentials({
           return null;
         }
         failedAttempts.delete(key);
-        return { id: adminEmail, email: adminEmail, name: "Stylebender admin" };
+        return { id: ADMIN_EMAIL, email: ADMIN_EMAIL, name: "Stylebender owner" };
       },
     });
 

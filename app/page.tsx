@@ -45,9 +45,11 @@ const tips = [
 function Nav({
   active,
   setActive,
+  sessionEmail,
 }: {
   active: string;
   setActive: (x: string, replace?: boolean, occasionOverride?: string) => void;
+  sessionEmail?: string;
 }) {
   const tabs = [
     ["Discover", Compass],
@@ -55,6 +57,9 @@ function Nav({
     ["Wardrobe", Shirt],
     ["Saved", Bookmark],
   ] as const;
+  const initials = sessionEmail
+    ? sessionEmail.split("@")[0].replace(/[^a-z0-9]/gi, "").slice(0, 2).toUpperCase() || "??"
+    : "";
 
   return (
     <>
@@ -110,7 +115,7 @@ function Nav({
           aria-label="Open Profile"
           className={`h-9 w-9 rounded-full border flex items-center justify-center transition-colors ${active === "Profile" ? "border-bronze text-bronze" : "border-ivory/30 text-ivory/80"}`}
         >
-          <UserRound size={17} />
+          {initials ? <span className="text-[11px] font-semibold tracking-wide">{initials}</span> : <UserRound size={17} />}
         </button>
       </header>
       <nav aria-label="Primary" className="mobile-bottom-nav lg:hidden fixed bottom-0 inset-x-0 min-h-[72px] rounded-t-[1.5rem] bg-paper/95 backdrop-blur-xl border-t border-line flex justify-around items-center px-1 z-20 shadow-[0_-12px_35px_rgba(20,37,30,0.12)]">
@@ -141,6 +146,7 @@ export default function Home() {
   const [autoGenerateVerdict, setAutoGenerateVerdict] = useState(false);
   const [dna, setDna] = useState(false);
   const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
+  const [sessionEmail, setSessionEmail] = useState<string | undefined>();
   const screenRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Record<string, number>>({});
 
@@ -164,6 +170,13 @@ export default function Home() {
       window.history[replace ? "replaceState" : "pushState"]({ view: next, occasion }, "", url);
     }
   }
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((response) => response.ok ? response.json() : null)
+      .then((session) => setSessionEmail(session?.user?.email ?? undefined))
+      .catch(() => setSessionEmail(undefined));
+  }, []);
 
   useEffect(() => {
     const screen = screenRef.current;
@@ -272,7 +285,7 @@ export default function Home() {
   return (
     <>
       <div className="mobile-app-shell bg-ivory">
-        <Nav active={active} setActive={setActive} />
+        <Nav active={active} setActive={setActive} sessionEmail={sessionEmail} />
         <div
           ref={screenRef}
           onScroll={(event) => { scrollPositions.current[active] = event.currentTarget.scrollTop; }}
@@ -280,7 +293,46 @@ export default function Home() {
         >
           {active === "Discover" ? (
           <main className="pb-8 lg:pb-0">
-            <section className="hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[520px] sm:min-h-[560px] md:min-h-[700px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-6 md:px-12 lg:px-20 lg:pt-24 max-w-[1600px] mx-auto pb-10 lg:pb-16">
+            <section className="lg:hidden bg-forest text-ivory px-5 pt-7 pb-7">
+              <p className="eyebrow text-bronze">Your next look</p>
+              <h1 className="serif text-[2.8rem] leading-[.95] mt-3">What are you dressing for?</h1>
+              <p className="text-ivory/75 text-sm leading-5 mt-4 max-w-sm">Choose an occasion and get one considered look from your wardrobe.</p>
+              <div className="grid grid-cols-3 gap-2 mt-6" aria-label="Occasion choices">
+                {occasions.map(([name, desc]) => {
+                  const isChosen = selected === name || (name === "Office Day" && selected === "Office");
+                  const label = name === "Office Day" ? "Office" : name;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => { setSelected(name); setShowCustomInput(false); }}
+                      aria-pressed={isChosen}
+                      className={`min-h-[82px] p-2 text-left border transition-colors ${isChosen ? "bg-ivory text-forest border-ivory" : "border-ivory/30 text-ivory hover:border-bronze"}`}
+                    >
+                      <span className="serif text-lg leading-none">{label}</span>
+                      <span className={`block text-[10px] leading-4 mt-2 ${isChosen ? "text-forest/70" : "text-ivory/65"}`}>{desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-4">
+                {!showCustomInput ? (
+                  <button type="button" onClick={() => setShowCustomInput(true)} className="text-xs text-ivory/80 underline underline-offset-4 inline-flex items-center gap-1">
+                    <Plus size={13} /> Custom occasion
+                  </button>
+                ) : (
+                  <div className="flex gap-2 border border-ivory/30 p-2">
+                    <input type="text" value={customOccasion} onChange={(event) => { setCustomOccasion(event.target.value); setSelected(event.target.value); }} placeholder="e.g. Gallery opening" aria-label="Custom occasion" className="min-w-0 flex-1 bg-transparent px-2 text-xs text-ivory placeholder:text-ivory/50 focus:outline-none" autoFocus />
+                    <button type="button" onClick={() => customOccasion.trim() && setSelected(customOccasion.trim())} className="bg-ivory text-forest px-3 py-2 text-xs">Use</button>
+                  </div>
+                )}
+              </div>
+              <button type="button" onClick={() => startStyling(selected)} disabled={!selected.trim()} className="mt-5 w-full bg-ivory text-forest px-5 py-4 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-45 disabled:cursor-not-allowed">
+                Style my look <ChevronRight size={17} />
+              </button>
+            </section>
+
+            <section className="hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[520px] sm:min-h-[560px] md:min-h-[700px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-6 md:px-12 lg:px-20 lg:pt-24 max-w-[1600px] mx-auto pb-10 lg:pb-16 hidden lg:block">
               <Image
                 src="/stylebender-hero-campaign.jpg"
                 alt="Model in a forest green tailored jacket"
@@ -422,7 +474,7 @@ export default function Home() {
             </section>
 
             {/* Secondary Occasion & Daily Edit Section */}
-            <section className="mt-14 lg:mt-24 max-w-[1500px] mx-auto grid md:grid-cols-2 lg:grid-cols-[1.2fr_.8fr] gap-5 px-6 md:px-10 lg:px-20">
+            <section className="hidden lg:grid mt-14 lg:mt-24 max-w-[1500px] mx-auto grid-cols-2 lg:grid-cols-[1.2fr_.8fr] gap-5 px-6 md:px-10 lg:px-20">
               <div className="relative min-h-[380px] overflow-hidden bg-forest grain">
                 <Image
                   src="/menswear-outfit-flatlay.jpg"
@@ -473,7 +525,7 @@ export default function Home() {
             </section>
 
             {/* Optional Style DNA Section */}
-            <section className="px-6 lg:px-20 py-16 max-w-[1500px] mx-auto">
+            <section className="hidden lg:block px-6 lg:px-20 py-16 max-w-[1500px] mx-auto">
               <div className="flex justify-between items-end">
                 <div>
                   <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
@@ -522,6 +574,7 @@ export default function Home() {
             setActive={setActive}
             setSelected={setSelected}
             context={{ ...profileContext, occasion: selected }}
+            sessionEmail={sessionEmail}
             autoGenerate={autoGenerateVerdict}
             onAutoGenerateConsumed={() => setAutoGenerateVerdict(false)}
           />
@@ -542,6 +595,7 @@ function Placeholder({
   setActive,
   setSelected,
   context,
+  sessionEmail,
   autoGenerate,
   onAutoGenerateConsumed,
 }: {
@@ -549,6 +603,7 @@ function Placeholder({
   setActive: (x: string, replace?: boolean, occasionOverride?: string) => void;
   setSelected: (occasion: string) => void;
   context: OutfitContext;
+  sessionEmail?: string;
   autoGenerate: boolean;
   onAutoGenerateConsumed: () => void;
 }) {
@@ -569,12 +624,12 @@ function Placeholder({
         </p>
       )}
 
-      <h1 className="serif text-5xl md:text-6xl mt-3">{active}</h1>
+      <h1 className={`serif mt-3 ${active === "Wardrobe" || active === "Profile" ? "text-4xl md:text-6xl" : "text-5xl md:text-6xl"}`}>{active}</h1>
 
       {active === "Wardrobe" ? (
         <WardrobePanel />
       ) : active === "Profile" ? (
-        <StyleProfilePanel />
+        <StyleProfilePanel email={sessionEmail} />
       ) : active === "Style Me" || active === "Verdict" ? (
         <VerdictPanel
           onAction={setActive}
