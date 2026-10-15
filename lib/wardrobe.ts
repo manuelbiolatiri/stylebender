@@ -78,8 +78,10 @@ export function findWardrobeMatch(garmentName: string, items?: WardrobeItem[]): 
     return matchCount >= Math.max(2, Math.ceil(targetWords.length * 0.6));
   });
 }
-export async function resolvePieceVisual(garmentName: string): Promise<{ url: string; isUser: boolean; item?: WardrobeItem } | null> {
-  const match = findWardrobeMatch(garmentName);
+export async function resolvePieceVisual(garmentName: string, wardrobeItemId?: string): Promise<{ url: string; isUser: boolean; item?: WardrobeItem } | null> {
+  const match = wardrobeItemId
+    ? (getWardrobeMetadata().find((item) => item.id === wardrobeItemId) ?? findWardrobeMatch(garmentName))
+    : findWardrobeMatch(garmentName);
   if (match) {
     const url = await getWardrobeMediaUrl(match.id);
     if (url) return { url, isUser: true, item: match };
@@ -118,7 +120,17 @@ export async function deleteWardrobeItems(ids: string[]) {
 export function getWardrobeMetadata(): WardrobeItem[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem("stylebender-wardrobe-meta") ?? "[]") as WardrobeItem[];
+    const parsed = JSON.parse(localStorage.getItem("stylebender-wardrobe-meta") ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item): item is Partial<WardrobeItem> & { name: string } => Boolean(item && typeof item === "object" && typeof item.name === "string"))
+      .map((item, index) => ({
+        ...item,
+        // Older local wardrobes may not have category or a generated ID.
+        id: item.id || `legacy-${index}-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        category: item.category || "Other",
+        createdAt: item.createdAt || 0,
+      }));
   } catch {
     return [];
   }

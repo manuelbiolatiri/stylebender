@@ -20,10 +20,11 @@ import {
   setCurrentOutfit,
   type OutfitContext,
   type OutfitPiece,
+  type WardrobeContextItem,
   type OutfitVersion,
 } from "@/lib/outfit";
 import { findCatalogProduct } from "@/lib/products";
-import { getWardrobeMetadata, resolvePieceVisual } from "@/lib/wardrobe";
+import { findWardrobeMatch, getWardrobeMetadata, resolvePieceVisual } from "@/lib/wardrobe";
 
 export function VerdictPanel({
   onSave,
@@ -69,7 +70,7 @@ export function VerdictPanel({
     async function loadImages() {
       const mapping: Record<string, { url: string; isUser: boolean }> = {};
       for (const piece of result!.pieces) {
-        const visual = await resolvePieceVisual(piece.name);
+        const visual = await resolvePieceVisual(piece.name, piece.wardrobeItemId);
         if (visual) {
           mapping[piece.name] = { url: visual.url, isUser: visual.isUser };
         } else if (piece.product?.image) {
@@ -107,14 +108,21 @@ export function VerdictPanel({
       requestPrompt = `Generate a completely fresh and distinct styling direction for ${outfitContext.occasion}. Do not repeat the previous silhouette.`;
     }
 
-    const latestWardrobe = getWardrobeMetadata().map((item) => item.name);
+    const latestWardrobe = getWardrobeMetadata();
+    const wardrobeContext: WardrobeContextItem[] = latestWardrobe.map((item) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      ...(item.colour ? { colour: item.colour } : {}),
+      ...(item.material ? { material: item.material } : {}),
+    }));
     try {
       const response = await fetch("/api/stylist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...outfitContext,
-          wardrobe: latestWardrobe.length > 0 ? latestWardrobe : (outfitContext.wardrobe ?? []),
+          wardrobe: wardrobeContext.length > 0 ? wardrobeContext : (outfitContext.wardrobe ?? []),
           request: requestPrompt,
         }),
       });
@@ -136,10 +144,16 @@ export function VerdictPanel({
       }
 
       const piecesWithProducts = payload.data.pieces.map(
-        (piece: { name: string; owned: boolean; note: string }) => ({
+        (piece: { name: string; owned: boolean; note: string }) => {
+          const wardrobeMatch = findWardrobeMatch(piece.name, latestWardrobe);
+          return {
           ...piece,
-          product: findCatalogProduct(piece.name),
-        }),
+          // Gemini's ownership flag is advisory only; local wardrobe data is authoritative.
+          owned: Boolean(wardrobeMatch),
+          ...(wardrobeMatch ? { wardrobeItemId: wardrobeMatch.id } : {}),
+          ...(!wardrobeMatch && findCatalogProduct(piece.name) ? { product: findCatalogProduct(piece.name) } : {}),
+          };
+        },
       );
 
       const next: OutfitVersion = {

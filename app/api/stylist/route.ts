@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import type { OutfitContext } from "@/lib/outfit";
+import type { OutfitContext, WardrobeContextItem } from "@/lib/outfit";
 import { auth } from "@/auth";
 import { buildStylistPrompt } from "@/lib/stylist-prompt";
 
@@ -15,7 +15,16 @@ const requestSchema = z.object({
   occasion: z.string().min(1).max(80),
   budget: z.string().max(40).default("£150–£300"),
   styles: z.array(z.string().max(60)).max(10).default([]),
-  wardrobe: z.array(z.string().max(100)).max(30).default([]),
+  wardrobe: z.array(z.union([
+    z.string().max(100),
+    z.object({
+      id: z.string().min(1).max(100),
+      name: z.string().min(1).max(100),
+      category: z.string().max(60),
+      colour: z.string().max(60).optional(),
+      material: z.string().max(80).optional(),
+    }),
+  ])).max(30).default([]),
   request: z.string().max(500).default("Recommend one strong outfit"),
 });
 const responseSchema = z.object({

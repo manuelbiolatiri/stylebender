@@ -20,11 +20,20 @@ export type OutfitPiece = {
   wardrobeItemId?: string;
 };
 
+export type WardrobeContextItem = {
+  id: string;
+  name: string;
+  category: string;
+  colour?: string;
+  material?: string;
+};
+
 export type OutfitContext = {
   occasion: string;
   budget: string;
   styles: string[];
-  wardrobe: string[];
+  /** String entries keep older saved contexts readable; new requests send metadata objects. */
+  wardrobe: Array<string | WardrobeContextItem>;
   request: string;
 };
 

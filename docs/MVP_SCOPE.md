@@ -32,7 +32,7 @@ Non-goals: real virtual try-on, live retailer prices or checkout, affiliate shop
 - [ ] Wardrobe First E2E: upload locally → edit metadata → choose occasion → generation uses owned items → owned/missing labels and local image are truthful → save/reload.
 - [ ] Returning User E2E: saved list → open original → change/elevate → save new version → original remains available → delete works.
 - [ ] Confirm failures are recoverable: signed out, missing Gemini key, invalid provider response, timeout, quota/rate limit, malformed local data and storage quota errors.
-- [ ] Confirm local wardrobe media remains in IndexedDB/local storage and is not sent to Gemini without an explicit provider-processing consent path.
+- [x] Confirm local wardrobe media remains in IndexedDB/local storage and is not sent to Gemini. New generation requests send only wardrobe metadata; no photo URL/blob is included. Evidence: `components/verdict-panel.tsx`, mocked request assertion in `tests/e2e/wardrobe-intelligence.spec.ts`.
 
 ### P1 — release hygiene
 
@@ -47,6 +47,8 @@ Non-goals: real virtual try-on, live retailer prices or checkout, affiliate shop
 - PASS: `yarn test` after separating the Playwright exclusion; no unit test files are currently present.
 - PASS: `yarn build`.
 - PASS: focused mocked generation-regression Playwright coverage verifies one request across tab switches, zero requests when reopening a saved look, and one request during pending-auth restoration without stale `Verdict` state.
+- PASS: mocked Wardrobe Intelligence coverage verifies empty, complementary and unsuitable wardrobes; metadata includes stable IDs/category/optional colour/material, Gemini ownership claims are reconciled locally, and wardrobe photos are absent from the request. Evidence: `tests/e2e/wardrobe-intelligence.spec.ts` (3/3), `tests/stylist-prompt.test.ts`, `tests/outfit-visuals.test.ts`.
+- PASS: catalogue and persisted-look visual safety checks reject unrelated garment matches, migrate stale local-catalog imagery, and use honest placeholders when no reliable catalogue image exists. Evidence: `tests/products.test.ts`, `tests/outfit-visuals.test.ts`.
 - PARTIAL: mobile shell screenshots exist in `docs/screenshots/mobile/`, and an earlier focused run passed the 320px, 375px, 390px and 430px shell checks. The latest post-fix run exposed test-harness issues around duplicate desktop/mobile locator matches and wardrobe-tab hydration; this remains open until the suite is rerun cleanly after those assertions are stabilized. Keyboard appearance and device safe-area behavior remain unverified in an emulated native browser.
 - NOT PASS: full legacy `yarn test:e2e` suite contains pre-freeze Verdict/Generate selectors and parallel Next dev-cache races; it is not a valid release signal until those tests are migrated to the frozen Style Me flow and run with a stable server configuration.
 - PASS: controlled live Gemini request returned HTTP 200; key and response withheld.
