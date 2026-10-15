@@ -4,11 +4,25 @@ Status: frozen product scope supplied for MVP development. This document is the 
 
 ## Fixed product scope
 
-Stylebender is a responsive, mobile-first UK menswear stylist for men seeking practical, premium-inspired styling. It uses Google Gemini only for live generation, keeps wardrobe photographs local by default, and helps a user choose, refine, complete, save and reuse one occasion-led outfit. It is not a general chatbot, retailer, marketplace or social product.
+Stylebender is a responsive, mobile-first UK menswear stylist for men seeking practical, premium-inspired styling. It uses Google Gemini only for live generation, keeps wardrobe photographs local by default, and helps a user choose, refine, complete, save and reuse one occasion-led outfit. This controlled amendment adds one owner-only Credentials account, weather-based sample wardrobes and an honest verified-listings shopping entry point; it is not a general chatbot, marketplace or social product.
 
 Required screens: Discover, Your Look / Style Verdict, My Wardrobe, Saved Looks, Style Profile and Sign-in. Achieve and Elevate are contextual actions.
 
-Non-goals: real virtual try-on, live retailer prices or checkout, affiliate shopping, community/social styling, cloud photo sync, partner matching, advanced Yoruba-specific experiences, complex news/editorial feeds and voice AI.
+Non-goals: Google OAuth, multi-user registration, live weather detection, unverified retailer links/prices, internal checkout, affiliate shopping, community/social styling, cloud photo sync, partner matching, advanced Yoruba-specific experiences, complex news/editorial feeds and voice AI.
+
+## Controlled MVP amendment — authentication, samples and shopping
+
+- Authentication is Auth.js Credentials only, with one configurable administrator email and a server-only scrypt password hash. Sign-up, password reset and Google OAuth are not supported.
+- Rainy, Cold, Mild and Hot sample wardrobes contain curated local references. Selecting one changes Gemini context only; it does not overwrite or mark the user's actual wardrobe as owned. Individual photographed sample pieces can be added explicitly.
+- Shop this Look is contextual and secondary. No retailer feed or marketplace integration is connected in this sprint, so the product shows unavailable states until a permitted, verified UK listing source is approved.
+
+Verification status for this amendment:
+
+- [x] Credentials-only sign-in surface, hidden sign-up redirect, scrypt password verification and failed-attempt throttling are covered by unit/browser checks.
+- [x] Rainy, Cold, Mild and Hot sample collections are separated from actual wardrobe ownership, persist their selection locally, and support explicit per-item adoption.
+- [x] Shop this Look never fabricates retailer data; the empty verified-listing boundary is covered by mocked browser tests.
+- [x] Mobile sample-wardrobe screenshot captured at 390×844: `docs/screenshots/mobile/weather-sample-rainy-390x844.png`.
+- [ ] Full legacy mobile-shell suite remains unstable at 320×568/375×667 in the existing harness; the failure is in the tab-loop timeout and needs a separate selector/scroll-harness cleanup before release.
 
 ## Three release journeys
 

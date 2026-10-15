@@ -130,13 +130,13 @@ export async function deleteWardrobeItems(ids: string[]) {
   await tx.done;
   if (typeof window !== "undefined") {
     const remove = new Set(ids);
-    const current = getWardrobeMetadata().filter((item) => !remove.has(item.id));
+    const current = getWardrobeMetadata(true).filter((item) => !remove.has(item.id));
     localStorage.setItem("stylebender-wardrobe-meta", JSON.stringify(current));
     window.dispatchEvent(new CustomEvent("stylebender-wardrobe-updated"));
   }
 }
 
-export function getWardrobeMetadata(): WardrobeItem[] {
+export function getWardrobeMetadata(includeSamples = false): WardrobeItem[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(localStorage.getItem("stylebender-wardrobe-meta") ?? "[]");
@@ -149,7 +149,8 @@ export function getWardrobeMetadata(): WardrobeItem[] {
         id: item.id || `legacy-${index}-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
         category: item.category || "Other",
         createdAt: item.createdAt || 0,
-      }));
+      }))
+      .filter((item) => includeSamples || item.source !== "demo");
   } catch {
     return [];
   }

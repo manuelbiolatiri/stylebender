@@ -13,6 +13,11 @@ export const localCatalog: ProductReference[] = [
   { id: "local-brown-loafers", source: "local-catalog", name: "Dark brown penny loafers", image: "/demo-wardrobe/brown-loafers.png" },
 ];
 
+/** No retailer feed is connected in this MVP amendment. Keep this empty until listings are verified. */
+export function getVerifiedRetailerListings(_garmentName: string): ProductReference[] {
+  return [];
+}
+
 export type GarmentCategory = "outerwear" | "shirt" | "knitwear" | "trousers" | "shoes" | "accessories" | "other";
 
 function normalise(value: string) {

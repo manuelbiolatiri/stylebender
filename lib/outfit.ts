@@ -27,6 +27,7 @@ export type WardrobeContextItem = {
   category: string;
   colour?: string;
   material?: string;
+  sample?: boolean;
 };
 
 export type OutfitContext = {
@@ -36,6 +37,8 @@ export type OutfitContext = {
   /** String entries keep older saved contexts readable; new requests send metadata objects. */
   wardrobe: Array<string | WardrobeContextItem>;
   request: string;
+  weather?: string;
+  sampleWardrobe?: WardrobeContextItem[];
 };
 
 export type OutfitVersion = {
@@ -67,6 +70,8 @@ export const outfitSchema = z.object({
       z.object({ id: z.string(), name: z.string(), category: z.string(), colour: z.string().optional(), material: z.string().optional() }),
     ])),
     request: z.string(),
+    weather: z.string().optional(),
+    sampleWardrobe: z.array(z.object({ id: z.string(), name: z.string(), category: z.string(), colour: z.string().optional(), material: z.string().optional(), sample: z.boolean().optional() })).optional(),
   }),
   verdict: z.enum(["Wear", "Change One Piece", "Elevate", "Skip"]),
   title: z.string(),

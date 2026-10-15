@@ -11,6 +11,7 @@ import {
   type WardrobeItem,
 } from "@/lib/wardrobe";
 import { demoWardrobe, importDemoWardrobe } from "@/lib/demo-wardrobe";
+import { readSelectedSampleWeather, sampleWardrobes, sampleWeatherOptions, selectSampleWeather, type SampleWeather } from "@/lib/sample-wardrobes";
 
 const categories = [
   "Tops",
@@ -39,6 +40,7 @@ export function WardrobePanel() {
     colour: "",
     material: "",
   });
+  const [sampleWeather, setSampleWeather] = useState<SampleWeather>("Mild");
 
   async function refresh() {
     const records = await getWardrobeItems();
@@ -51,9 +53,32 @@ export function WardrobePanel() {
   }
 
   useEffect(() => {
+    setSampleWeather(readSelectedSampleWeather());
     refresh();
     return () => items.forEach((item) => URL.revokeObjectURL(item.url));
   }, []);
+
+  async function addSamplePiece(item: (typeof sampleWardrobes)[SampleWeather][number]) {
+    if (!item.image) {
+      setFeedback({ type: "info", message: "This sample accessory has no local photograph. Add your own photo in the wardrobe to make it owned." });
+      return;
+    }
+    setBusy(true);
+    try {
+      const response = await fetch(item.image);
+      if (!response.ok) throw new Error("sample image unavailable");
+      await saveWardrobeItem({
+        id: crypto.randomUUID(), name: item.name, category: item.category, colour: item.colour,
+        material: item.material, createdAt: Date.now(), source: "user",
+      }, await response.blob());
+      await refresh();
+      setFeedback({ type: "success", message: `${item.name} added to your wardrobe.` });
+    } catch {
+      setFeedback({ type: "error", message: "Could not add this sample garment to your wardrobe." });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function onFile(file?: File) {
     if (!file) return;
@@ -270,6 +295,47 @@ export function WardrobePanel() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="mt-4 bg-forest text-ivory p-6 lg:p-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <p className="uppercase tracking-[.25em] text-[10px] text-bronze">Sample wardrobe</p>
+            <h2 className="serif text-3xl mt-2">Dress for the conditions.</h2>
+            <p className="text-ivory/70 text-sm leading-6 mt-2 max-w-xl">
+              Explore a curated weather edit without changing your private wardrobe. Sample pieces guide Gemini as styling references only.
+            </p>
+          </div>
+          <label className="text-xs text-ivory/70">
+            Weather condition
+            <select
+              aria-label="Sample weather condition"
+              value={sampleWeather}
+              onChange={(event) => {
+                const next = event.target.value as SampleWeather;
+                setSampleWeather(next);
+                selectSampleWeather(next);
+              }}
+              className="ml-2 bg-ivory text-forest px-3 py-2 text-xs"
+            >
+              {sampleWeatherOptions.map((weather) => <option key={weather}>{weather}</option>)}
+            </select>
+          </label>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
+          {sampleWardrobes[sampleWeather].map((item) => (
+            <article key={item.id} className="bg-ivory/10 border border-ivory/15 p-2 min-w-0">
+              <div className="aspect-square bg-ivory/10 overflow-hidden flex items-center justify-center">
+                {item.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" /> : <span className="text-[10px] text-ivory/50 text-center px-2">No local image</span>}
+              </div>
+              <p className="text-[11px] leading-4 mt-2 line-clamp-2">{item.name}</p>
+              <p className="text-[9px] text-bronze mt-1">Sample · {item.category}</p>
+              <button type="button" onClick={() => addSamplePiece(item)} disabled={busy} className="mt-2 text-[10px] border border-ivory/30 px-2 py-1 hover:bg-ivory hover:text-forest disabled:opacity-50">
+                Add to my wardrobe
+              </button>
+            </article>
+          ))}
         </div>
       </div>
 

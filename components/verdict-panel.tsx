@@ -24,7 +24,7 @@ import {
   type OutfitVersion,
   replaceOutfitPiece,
 } from "@/lib/outfit";
-import { findCatalogProduct } from "@/lib/products";
+import { findCatalogProduct, getVerifiedRetailerListings } from "@/lib/products";
 import { getWardrobeMetadata, reconcileGarmentOwnership, resolvePieceVisual } from "@/lib/wardrobe";
 
 export function VerdictPanel({
@@ -49,6 +49,7 @@ export function VerdictPanel({
   const [swapPieceName, setSwapPieceName] = useState<string | null>(null);
   const [wearConfirmed, setWearConfirmed] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showShop, setShowShop] = useState(false);
   const [resolvedImages, setResolvedImages] = useState<Record<string, { url: string; isUser: boolean }>>({});
   const autoGenerateStarted = useRef(false);
   const generationInFlight = useRef(false);
@@ -490,6 +491,14 @@ export function VerdictPanel({
           </button>
 
           <button
+            disabled={!result}
+            onClick={() => setShowShop((current) => !current)}
+            className="text-xs border border-line px-3.5 py-2.5 hover:border-forest transition-colors disabled:opacity-40"
+          >
+            {showShop ? "Close shopping" : "Shop this look"} <ArrowUpRight className="inline ml-1" size={14} />
+          </button>
+
+          <button
             onClick={toggleSave}
             disabled={!result || status === "error"}
             className={
@@ -503,6 +512,30 @@ export function VerdictPanel({
             {saved ? "Saved" : "Save"}
           </button>
         </div>
+
+        {showShop && result && (
+          <div className="border-t border-line mt-5 pt-5" aria-label="Shop this look">
+            <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">Optional shopping</p>
+            <h3 className="serif text-2xl mt-2">Find verified items.</h3>
+            <p className="text-xs text-muted leading-5 mt-2 max-w-xl">
+              Stylebender does not invent retailer links, prices or availability. Verified UK listings are not connected for this look yet.
+            </p>
+            <div className="mt-4 space-y-2">
+              {result.pieces.map((piece) => {
+                const listings = getVerifiedRetailerListings(piece.name);
+                return (
+                  <div key={`shop-${piece.name}`} className="border border-line p-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{piece.name}</p>
+                      <p className="text-[10px] text-muted mt-1">{listings.length ? "Verified listing available" : "No verified listing available"}</p>
+                    </div>
+                    {listings[0]?.url ? <a href={listings[0].url} target="_blank" rel="noreferrer" className="text-[10px] border border-forest px-2 py-1 shrink-0">View at {listings[0].retailer}</a> : <span className="text-[10px] text-muted shrink-0">Unavailable</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

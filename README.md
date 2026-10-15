@@ -9,15 +9,19 @@ yarn install
 yarn dev
 ```
 
-Copy `.env.example` to `.env` and configure `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, and `GEMINI_API_KEY` as needed. Google callback URL for local development:
+Copy `.env.example` to `.env` and configure `AUTH_SECRET`, `AUTH_ADMIN_EMAIL`, `AUTH_ADMIN_PASSWORD_HASH`, and `GEMINI_API_KEY` as needed. Generate the password hash without storing the plaintext password:
 
-`http://localhost:2000/api/auth/callback/google`
+```bash
+yarn auth:hash 'use-a-long-local-password'
+```
 
-The landing page and auth views are public. Product routes are protected by Auth.js middleware. `AUTH_ALLOWED_EMAILS` controls the Google email allowlist.
+Copy the printed `scrypt$...` value into `AUTH_ADMIN_PASSWORD_HASH`. The default test email is `admin@stylebender.test`; override it with `AUTH_ADMIN_EMAIL` when needed. Credentials are server-only and failed attempts are rate-limited.
+
+The landing page and sign-in view are public. Product routes are protected by Auth.js middleware. There is one owner-only Credentials account; sign-up, password reset and Google OAuth are intentionally unavailable in this MVP amendment.
 
 ## Product truth states
 
-Local/demo content is labelled in the architecture and implementation docs. No live shopping, current trend/news, physical-fit guarantee, or fabricated AI try-on result is presented as real. Wardrobe images are intended to stay local unless the user explicitly consents to provider processing.
+Local/demo content is labelled in the architecture and implementation docs. Weather sample wardrobes are styling context only and never count as owned until an individual item is explicitly added to the local wardrobe. Shop this Look currently shows an honest unavailable state because no retailer feed has been approved or verified; it does not invent links, prices or availability.
 
 See [docs/PRODUCT_BLUEPRINT.md](docs/PRODUCT_BLUEPRINT.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and [docs/PRIVACY_AND_AI_LIMITATIONS.md](docs/PRIVACY_AND_AI_LIMITATIONS.md).
 

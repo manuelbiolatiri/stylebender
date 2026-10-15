@@ -51,29 +51,17 @@ export default async function SignInPage({
                 </p>
               ) : null}
               <input name="email" type="email" required placeholder="Email" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
-              {process.env.AUTH_PASSWORD?.trim() ? (
+              {process.env.AUTH_ADMIN_PASSWORD_HASH?.trim() ? (
                 <input name="password" type="password" required placeholder="Password" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
               ) : (
                 <p className="border border-amber-800/30 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  Email sign-in is unavailable until AUTH_PASSWORD is configured.
+                  Email sign-in is unavailable until AUTH_ADMIN_PASSWORD_HASH is configured.
                 </p>
               )}
               <button className="w-full bg-forest text-ivory py-4 text-sm">
                 Sign in with email
               </button>
             </form>
-            {process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET ? (
-              <form
-                action={async () => {
-                  "use server";
-                  await signIn("google", { redirectTo: callbackUrl });
-                }}
-              >
-                <button className="w-full border border-forest text-forest py-4 mt-3 text-sm">
-                  Continue with Google
-                </button>
-              </form>
-            ) : null}
           </>
         ) : (
           <div className="mt-8 border border-line p-4 text-sm text-muted leading-6">

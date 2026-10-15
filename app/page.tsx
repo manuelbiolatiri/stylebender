@@ -23,6 +23,7 @@ import { HeroMotion } from "@/components/hero-motion";
 import { defaultOutfitContext, readCurrentOutfit, type OutfitContext } from "@/lib/outfit";
 import { getWardrobeMetadata } from "@/lib/wardrobe";
 import { SavedPanel } from "@/components/saved-panel";
+import { getSampleWardrobeContext, readSelectedSampleWeather, type SampleWeather } from "@/lib/sample-wardrobes";
 
 const occasions = [
   ["Church", "Polished, expressive and considered", "/sunday-menswear-editorial.jpg"],
@@ -225,6 +226,8 @@ export default function Home() {
         styles: profile?.styles ?? current.styles,
         budget: profile?.budget ?? current.budget,
         wardrobe: getWardrobeMetadata().map((item) => item.name),
+        weather: readSelectedSampleWeather(),
+        sampleWardrobe: getSampleWardrobeContext(readSelectedSampleWeather()),
       }));
     } catch {
       /* ignore malformed local metadata */
@@ -237,8 +240,16 @@ export default function Home() {
         wardrobe: getWardrobeMetadata().map((item) => item.name),
       }));
     }
+    function onSampleUpdated() {
+      const weather = readSelectedSampleWeather();
+      setProfileContext((current) => ({ ...current, weather, sampleWardrobe: getSampleWardrobeContext(weather) }));
+    }
     window.addEventListener("stylebender-wardrobe-updated", onWardrobeUpdated);
-    return () => window.removeEventListener("stylebender-wardrobe-updated", onWardrobeUpdated);
+    window.addEventListener("stylebender-sample-updated", onSampleUpdated);
+    return () => {
+      window.removeEventListener("stylebender-wardrobe-updated", onWardrobeUpdated);
+      window.removeEventListener("stylebender-sample-updated", onSampleUpdated);
+    };
   }, []);
 
   // Update profile context when view changes
@@ -250,6 +261,8 @@ export default function Home() {
         styles: profile?.styles ?? current.styles,
         budget: profile?.budget ?? current.budget,
         wardrobe: getWardrobeMetadata().map((item) => item.name),
+        weather: readSelectedSampleWeather(),
+        sampleWardrobe: getSampleWardrobeContext(readSelectedSampleWeather()),
       }));
     } catch {
       /* ignore malformed local metadata */

@@ -23,8 +23,14 @@ const requestSchema = z.object({
       category: z.string().max(60),
       colour: z.string().max(60).optional(),
       material: z.string().max(80).optional(),
+        sample: z.boolean().optional(),
     }),
   ])).max(30).default([]),
+  weather: z.string().max(30).optional(),
+  sampleWardrobe: z.array(z.object({
+    id: z.string().min(1).max(100), name: z.string().min(1).max(100), category: z.string().max(60),
+    colour: z.string().max(60).optional(), material: z.string().max(80).optional(), sample: z.literal(true),
+  })).max(20).default([]),
   request: z.string().max(500).default("Recommend one strong outfit"),
 });
 const responseSchema = z.object({
