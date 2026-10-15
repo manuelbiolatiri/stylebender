@@ -7,7 +7,6 @@
     "dev": "next dev -p 2000",
     "build": "next build",
     "start": "next start -p 2000",
-    "auth:hash": "node scripts/generate-auth-hash.mjs",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests --exclude 'tests/e2e/**'",

@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { verifyPassword } from "@/lib/auth-password";
 import authConfig from "@/auth.config";
 
 const failedAttempts = new Map<string, { count: number; resetAt: number; blockedUntil: number }>();
@@ -11,18 +10,15 @@ const BLOCK_MS = 15 * 60 * 1000;
 const credentialsProvider = Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const email = String(credentials?.email ?? "").trim().toLowerCase();
-        const password = String(credentials?.password ?? "");
         const adminEmail = (process.env.AUTH_ADMIN_EMAIL ?? "admin@stylebender.test").trim().toLowerCase();
-        const passwordHash = process.env.AUTH_ADMIN_PASSWORD_HASH?.trim() ?? "";
         const key = email || "unknown";
         const now = Date.now();
         const attempt = failedAttempts.get(key);
         if (attempt?.blockedUntil && attempt.blockedUntil > now) return null;
-        const valid = email === adminEmail && Boolean(password) && Boolean(passwordHash) && verifyPassword(password, passwordHash);
+        const valid = email === adminEmail;
         if (!valid) {
           const next = attempt && attempt.resetAt > now
             ? { ...attempt, count: attempt.count + 1 }

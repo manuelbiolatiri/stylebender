@@ -33,7 +33,6 @@ export default async function SignInPage({
                 try {
                   await signIn("credentials", {
                     email: formData.get("email"),
-                    password: formData.get("password"),
                     redirectTo: callbackUrl,
                   });
                 } catch (caught) {
@@ -47,19 +46,12 @@ export default async function SignInPage({
             >
               {error === "invalid-credentials" ? (
                 <p className="border border-red-800/30 bg-red-50 px-4 py-3 text-sm text-red-900">
-                  Email or password is incorrect.
+                  That email is not enabled for owner access.
                 </p>
               ) : null}
               <input name="email" type="email" required placeholder="Email" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
-              {process.env.AUTH_ADMIN_PASSWORD_HASH?.trim() ? (
-                <input name="password" type="password" required placeholder="Password" className="w-full border border-line bg-transparent px-4 py-3 text-sm" />
-              ) : (
-                <p className="border border-amber-800/30 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  Email sign-in is unavailable until AUTH_ADMIN_PASSWORD_HASH is configured.
-                </p>
-              )}
               <button className="w-full bg-forest text-ivory py-4 text-sm">
-                Sign in with email
+                Continue with email
               </button>
             </form>
           </>
