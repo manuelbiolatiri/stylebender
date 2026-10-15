@@ -11,7 +11,7 @@ import {
   type OutfitVersion,
 } from "@/lib/outfit";
 import { findCatalogProduct } from "@/lib/products";
-import { resolvePieceVisual } from "@/lib/wardrobe";
+import { getWardrobeMetadata, reconcileGarmentOwnership, resolvePieceVisual } from "@/lib/wardrobe";
 
 const directions = [
   "More polished",
@@ -53,7 +53,7 @@ export function ElevatePanel() {
       const mapping: Record<string, { url: string; isUser: boolean }> = {};
       for (const piece of piecesToResolve) {
         if (mapping[piece.name]) continue;
-        const visual = await resolvePieceVisual(piece.name);
+        const visual = await resolvePieceVisual(piece.name, piece.wardrobeItemId);
         if (visual) {
           mapping[piece.name] = { url: visual.url, isUser: visual.isUser };
         } else if (piece.product?.image) {
@@ -91,10 +91,15 @@ export function ElevatePanel() {
       const nextItem: OutfitVersion = {
         ...payload.data,
         pieces: payload.data.pieces.map(
-          (piece: { name: string; owned: boolean; note: string }) => ({
+          (piece: { name: string; owned: boolean; note: string }) => {
+            const ownership = reconcileGarmentOwnership(piece.name, undefined, getWardrobeMetadata());
+            return {
             ...piece,
-            product: findCatalogProduct(piece.name),
-          }),
+            owned: ownership.owned,
+            ...(ownership.wardrobeItemId ? { wardrobeItemId: ownership.wardrobeItemId } : {}),
+            ...(!ownership.owned && findCatalogProduct(piece.name) ? { product: findCatalogProduct(piece.name) } : {}),
+            };
+          },
         ),
         id: crypto.randomUUID(),
         createdAt: Date.now(),
@@ -108,7 +113,6 @@ export function ElevatePanel() {
       setElevatedLook(nextItem);
       const nextVersions = [nextItem, ...versions].slice(0, 8);
       setVersions(nextVersions);
-      saveOutfit(nextItem);
       setStatus("idle");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Gemini could not create this version.");
@@ -118,6 +122,7 @@ export function ElevatePanel() {
 
   function adoptElevated() {
     if (!elevatedLook) return;
+    saveOutfit(elevatedLook);
     setCurrentOutfit(elevatedLook);
     setAdopted(true);
   }

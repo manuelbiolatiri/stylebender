@@ -41,6 +41,16 @@ Non-goals: real virtual try-on, live retailer prices or checkout, affiliate shop
 - [ ] Run typecheck, production build, unit tests and Playwright at mobile, tablet and desktop widths.
 - [ ] Complete accessibility checks for disabled/selected occasion states, loading/error recovery, keyboard navigation and meaningful labels.
 
+### Outfit lifecycle reliability verification (2026-10-15)
+
+- [x] Shared local wardrobe reconciliation is used by Style Me, Achieve, Elevate and persisted Saved Looks; Gemini `owned` flags are advisory only.
+- [x] Change One Piece creates a new version while preserving the unselected garments; failed requests leave the original current outfit intact.
+- [x] Elevate keeps the before look, shows an explicit before/after comparison, and only saves the alternative after the user chooses Adopt.
+- [x] Saved Looks updates immediately, reopens without Gemini, resolves local images by wardrobe ID, tolerates missing images, and deletes by exact record ID.
+- [x] Legacy wardrobe name arrays and metadata objects are accepted; malformed records are skipped individually; temporary `blob:` image URLs are not persisted.
+- [x] Unit tests pass (10 tests) and focused mocked Playwright lifecycle tests pass locally at the configured Chromium profile.
+- [ ] Full three-journey authenticated Google OAuth verification, browser-restart persistence on a real configured profile, and the full legacy E2E suite remain outstanding.
+
 ## Current verification snapshot
 
 - PASS: `yarn typecheck`.

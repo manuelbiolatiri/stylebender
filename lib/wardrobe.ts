@@ -1,5 +1,5 @@
 import { openDB, type DBSchema } from "idb";
-import { inferGarmentCategory } from "@/lib/products";
+import { inferGarmentCategory } from "./products";
 
 export type WardrobeItem = {
   id: string;
@@ -11,6 +11,11 @@ export type WardrobeItem = {
   material?: string;
   styles?: string[];
   occasions?: string[];
+};
+
+export type ReconciledGarment = {
+  owned: boolean;
+  wardrobeItemId?: string;
 };
 interface WardrobeDB extends DBSchema {
   items: { key: string; value: WardrobeItem };
@@ -78,9 +83,23 @@ export function findWardrobeMatch(garmentName: string, items?: WardrobeItem[]): 
     return matchCount >= Math.max(2, Math.ceil(targetWords.length * 0.6));
   });
 }
+
+/** Local wardrobe data is authoritative; stable ids take precedence over fuzzy compatibility matching. */
+export function reconcileGarmentOwnership(
+  garmentName: string,
+  wardrobeItemId?: string,
+  items: WardrobeItem[] = getWardrobeMetadata(),
+): ReconciledGarment {
+  if (wardrobeItemId) {
+    const exact = items.find((item) => item.id === wardrobeItemId);
+    return exact ? { owned: true, wardrobeItemId: exact.id } : { owned: false };
+  }
+  const match = findWardrobeMatch(garmentName, items);
+  return match ? { owned: true, wardrobeItemId: match.id } : { owned: false };
+}
 export async function resolvePieceVisual(garmentName: string, wardrobeItemId?: string): Promise<{ url: string; isUser: boolean; item?: WardrobeItem } | null> {
   const match = wardrobeItemId
-    ? (getWardrobeMetadata().find((item) => item.id === wardrobeItemId) ?? findWardrobeMatch(garmentName))
+    ? getWardrobeMetadata().find((item) => item.id === wardrobeItemId)
     : findWardrobeMatch(garmentName);
   if (match) {
     const url = await getWardrobeMediaUrl(match.id);

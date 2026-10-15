@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { findCatalogProduct } from "./products";
+import { getWardrobeMetadata, reconcileGarmentOwnership } from "./wardrobe";
 
 export type ProductReference = {
   id: string;
@@ -57,7 +58,16 @@ export const outfitSchema = z.object({
   createdAt: z.number(),
   source: z.enum(["verdict", "elevated"]),
   direction: z.string().optional(),
-  context: z.object({ occasion: z.string(), budget: z.string(), styles: z.array(z.string()), wardrobe: z.array(z.string()), request: z.string() }),
+  context: z.object({
+    occasion: z.string(),
+    budget: z.string(),
+    styles: z.array(z.string()),
+    wardrobe: z.array(z.union([
+      z.string(),
+      z.object({ id: z.string(), name: z.string(), category: z.string(), colour: z.string().optional(), material: z.string().optional() }),
+    ])),
+    request: z.string(),
+  }),
   verdict: z.enum(["Wear", "Change One Piece", "Elevate", "Skip"]),
   title: z.string(),
   summary: z.string(),
@@ -91,16 +101,40 @@ export const defaultOutfitContext: OutfitContext = {
 };
 
 export function normaliseOutfitVisuals(outfit: OutfitVersion): OutfitVersion {
+  const wardrobe = getWardrobeMetadata();
   return {
     ...outfit,
     pieces: outfit.pieces.map((piece) => {
-      if (piece.product?.source !== "local-catalog") return piece;
-      const trustedProduct = findCatalogProduct(piece.name);
+      const ownership = reconcileGarmentOwnership(piece.name, piece.wardrobeItemId, wardrobe);
+      const safePiece = piece.userImageUrl?.startsWith("blob:") ? { ...piece, userImageUrl: undefined } : piece;
+      const reconciled = {
+        ...safePiece,
+        owned: ownership.owned,
+        ...(ownership.wardrobeItemId ? { wardrobeItemId: ownership.wardrobeItemId } : { wardrobeItemId: undefined }),
+      };
+      if (reconciled.product?.source !== "local-catalog") return reconciled;
+      const trustedProduct = findCatalogProduct(reconciled.name);
       return trustedProduct
-        ? { ...piece, product: trustedProduct }
-        : { ...piece, product: undefined };
+        ? { ...reconciled, product: trustedProduct }
+        : { ...reconciled, product: undefined };
     }),
   };
+}
+
+export function replaceOutfitPiece(
+  original: OutfitPiece[],
+  selectedName: string,
+  generated: OutfitPiece[],
+): OutfitPiece[] {
+  const selected = original.find((piece) => piece.name === selectedName);
+  if (!selected) return original;
+  const replacement = generated.find((piece) =>
+    piece.name !== selected.name &&
+    // Keep the request scoped to the same garment slot where possible.
+    piece.name.toLowerCase().split(/\s+/).some((word) => selected.name.toLowerCase().includes(word)),
+  ) ?? generated.find((piece) => piece.name !== selected.name);
+  if (!replacement) return original;
+  return original.map((piece) => piece.name === selectedName ? replacement : piece);
 }
 
 const SAVED_KEY = "stylebender-saved-outfits";
@@ -110,7 +144,11 @@ export function readOutfits(): OutfitVersion[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(localStorage.getItem(SAVED_KEY) ?? "[]");
-    return z.array(outfitSchema).parse(parsed).map(normaliseOutfitVisuals);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((entry) => {
+      const result = outfitSchema.safeParse(entry);
+      return result.success ? [normaliseOutfitVisuals(result.data)] : [];
+    });
   } catch {
     return [];
   }
@@ -119,10 +157,12 @@ export function readOutfits(): OutfitVersion[] {
 export function saveOutfit(outfit: OutfitVersion) {
   const validated = normaliseOutfitVisuals(outfitSchema.parse(outfit));
   localStorage.setItem(SAVED_KEY, JSON.stringify([validated, ...readOutfits().filter((item) => item.id !== validated.id)].slice(0, 20)));
+  window.dispatchEvent(new CustomEvent("stylebender-outfits-updated"));
 }
 
 export function removeOutfit(id: string) {
   localStorage.setItem(SAVED_KEY, JSON.stringify(readOutfits().filter((item) => item.id !== id)));
+  window.dispatchEvent(new CustomEvent("stylebender-outfits-updated"));
 }
 
 export function readCurrentOutfit(): OutfitVersion | null {

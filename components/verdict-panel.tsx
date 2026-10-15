@@ -22,9 +22,10 @@ import {
   type OutfitPiece,
   type WardrobeContextItem,
   type OutfitVersion,
+  replaceOutfitPiece,
 } from "@/lib/outfit";
 import { findCatalogProduct } from "@/lib/products";
-import { findWardrobeMatch, getWardrobeMetadata, resolvePieceVisual } from "@/lib/wardrobe";
+import { getWardrobeMetadata, reconcileGarmentOwnership, resolvePieceVisual } from "@/lib/wardrobe";
 
 export function VerdictPanel({
   onSave,
@@ -47,6 +48,7 @@ export function VerdictPanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [swapPieceName, setSwapPieceName] = useState<string | null>(null);
   const [wearConfirmed, setWearConfirmed] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [resolvedImages, setResolvedImages] = useState<Record<string, { url: string; isUser: boolean }>>({});
   const autoGenerateStarted = useRef(false);
   const generationInFlight = useRef(false);
@@ -62,6 +64,10 @@ export function VerdictPanel({
       }
     }
   }, [outfitContext.occasion]);
+
+  useEffect(() => {
+    setSaved(result ? readOutfits().some((item) => item.id === result.id) : false);
+  }, [result]);
 
   // Resolve user wardrobe photos whenever result pieces change
   useEffect(() => {
@@ -82,7 +88,13 @@ export function VerdictPanel({
     loadImages();
     return () => {
       active = false;
+      for (const image of Object.values(resolvedImages)) {
+        if (image.isUser) URL.revokeObjectURL(image.url);
+      }
     };
+  // resolvedImages is intentionally not a dependency: cleanup only releases the
+  // object URLs owned by this render, while product URLs remain untouched.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
 
   // Handle autoGenerate on arrival
@@ -143,18 +155,18 @@ export function VerdictPanel({
         throw new Error(payload.error ?? "Gemini could not complete this request.");
       }
 
-      const piecesWithProducts = payload.data.pieces.map(
-        (piece: { name: string; owned: boolean; note: string }) => {
-          const wardrobeMatch = findWardrobeMatch(piece.name, latestWardrobe);
-          return {
+      const generatedPieces = payload.data.pieces.map((piece: { name: string; owned: boolean; note: string }) => {
+        const ownership = reconcileGarmentOwnership(piece.name, undefined, latestWardrobe);
+        return {
           ...piece,
-          // Gemini's ownership flag is advisory only; local wardrobe data is authoritative.
-          owned: Boolean(wardrobeMatch),
-          ...(wardrobeMatch ? { wardrobeItemId: wardrobeMatch.id } : {}),
-          ...(!wardrobeMatch && findCatalogProduct(piece.name) ? { product: findCatalogProduct(piece.name) } : {}),
-          };
-        },
-      );
+          owned: ownership.owned,
+          ...(ownership.wardrobeItemId ? { wardrobeItemId: ownership.wardrobeItemId } : {}),
+          ...(!ownership.owned && findCatalogProduct(piece.name) ? { product: findCatalogProduct(piece.name) } : {}),
+        };
+      });
+      const piecesWithProducts = options?.swapPiece && result
+        ? replaceOutfitPiece(result.pieces, options.swapPiece, generatedPieces)
+        : generatedPieces;
 
       const next: OutfitVersion = {
         ...payload.data,
@@ -180,14 +192,14 @@ export function VerdictPanel({
     }
   }
 
-  const isSaved = result ? readOutfits().some((item) => item.id === result.id) : false;
-
   function toggleSave() {
     if (!result) return;
-    if (isSaved) {
+    if (saved) {
       removeOutfit(result.id);
+      setSaved(false);
     } else {
       saveOutfit(result);
+      setSaved(true);
     }
     if (onSave) onSave();
   }
@@ -482,13 +494,13 @@ export function VerdictPanel({
             disabled={!result || status === "error"}
             className={
               "text-xs px-4 py-2.5 font-medium transition-colors ml-auto flex items-center gap-1.5 " +
-              (isSaved
+              (saved
                 ? "bg-bronze text-ivory"
                 : "bg-forest text-ivory hover:bg-forest/90 disabled:opacity-40")
             }
           >
-            <Bookmark className="inline" size={14} fill={isSaved ? "currentColor" : "none"} />
-            {isSaved ? "Saved" : "Save"}
+            <Bookmark className="inline" size={14} fill={saved ? "currentColor" : "none"} />
+            {saved ? "Saved" : "Save"}
           </button>
         </div>
       </div>

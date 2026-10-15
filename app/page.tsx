@@ -570,7 +570,7 @@ function Placeholder({
           onAutoGenerateConsumed={onAutoGenerateConsumed}
         />
       ) : active === "Achieve" ? (
-        <AchievePanel />
+        <AchievePanel onAddToWardrobe={() => setActive("Wardrobe")} />
       ) : active === "Elevate" ? (
         <ElevatePanel />
       ) : active === "Try On" ? (

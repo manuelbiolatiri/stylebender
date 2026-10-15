@@ -2,19 +2,17 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Check, CheckCircle2, Circle, HelpCircle, PackageCheck, Shirt } from "lucide-react";
-import { readCurrentOutfit, type OutfitPiece } from "@/lib/outfit";
+import { normaliseOutfitVisuals, readCurrentOutfit, type OutfitPiece } from "@/lib/outfit";
 import { resolvePieceVisual } from "@/lib/wardrobe";
 
-export function AchievePanel() {
+export function AchievePanel({ onAddToWardrobe }: { onAddToWardrobe: () => void }) {
   const [pieces, setPieces] = useState<OutfitPiece[]>([]);
-  const [owned, setOwned] = useState<string[]>([]);
   const [visuals, setVisuals] = useState<Record<string, { url: string; isUser: boolean }>>({});
 
   useEffect(() => {
     const current = readCurrentOutfit();
     if (current?.pieces) {
-      setPieces(current.pieces);
-      setOwned(current.pieces.filter((p) => p.owned).map((p) => p.name));
+      setPieces(normaliseOutfitVisuals(current).pieces);
     }
   }, []);
 
@@ -39,16 +37,8 @@ export function AchievePanel() {
     };
   }, [pieces]);
 
-  const toggle = (name: string) => {
-    setOwned((current) =>
-      current.includes(name)
-        ? current.filter((item) => item !== name)
-        : [...current, name],
-    );
-  };
-
-  const ownedPieces = pieces.filter((p) => owned.includes(p.name));
-  const missingPieces = pieces.filter((p) => !owned.includes(p.name));
+  const ownedPieces = pieces.filter((p) => p.owned);
+  const missingPieces = pieces.filter((p) => !p.owned);
 
   return (
     <div className="mt-6 md:mt-8 max-w-4xl pb-24 md:pb-0">
@@ -104,7 +94,6 @@ export function AchievePanel() {
                       return (
                         <div
                           key={piece.name}
-                          onClick={() => toggle(piece.name)}
                           className="w-full text-left flex items-center gap-3 border border-emerald-900/20 bg-emerald-50/30 p-3 transition-colors hover:border-bronze cursor-pointer"
                         >
                           <div className="relative h-14 w-14 shrink-0 overflow-hidden bg-forest/5 border border-line">
@@ -162,7 +151,7 @@ export function AchievePanel() {
                       return (
                         <div
                           key={piece.name}
-                          onClick={() => toggle(piece.name)}
+                          onClick={onAddToWardrobe}
                           className="w-full text-left flex items-center gap-3 border border-line bg-ivory/20 p-3 transition-colors hover:border-bronze cursor-pointer"
                         >
                           <div className="relative h-14 w-14 shrink-0 overflow-hidden bg-forest/5 border border-line">
@@ -175,12 +164,12 @@ export function AchievePanel() {
                           <div className="min-w-0 flex-1">
                             <span className="block text-sm font-medium text-forest truncate">{piece.name}</span>
                             <span className="block text-xs text-muted mt-0.5">
-                              Catalog reference · tap if you own something similar
+                            Not in your wardrobe yet · add it with a local photo
                             </span>
                             {piece.note && <span className="block text-[11px] text-bronze mt-0.5 truncate">{piece.note}</span>}
                           </div>
                           <span className="text-xs border border-line px-2.5 py-1 text-muted hover:text-forest shrink-0">
-                            Mark owned
+                            Add to wardrobe
                           </span>
                         </div>
                       );

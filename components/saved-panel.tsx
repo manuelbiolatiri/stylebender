@@ -2,14 +2,42 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Bookmark, Shirt, Trash2 } from "lucide-react";
 import { readOutfits, removeOutfit, setCurrentOutfit, type OutfitVersion } from "@/lib/outfit";
+import { resolvePieceVisual } from "@/lib/wardrobe";
 
 export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }) {
   const [items, setItems] = useState<OutfitVersion[]>([]);
   const [filter, setFilter] = useState("All");
+  const [visuals, setVisuals] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setItems(readOutfits());
+    const refresh = () => setItems(readOutfits());
+    refresh();
+    window.addEventListener("stylebender-outfits-updated", refresh);
+    return () => window.removeEventListener("stylebender-outfits-updated", refresh);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const created: string[] = [];
+    async function load() {
+      const mapping: Record<string, string> = {};
+      for (const item of items) for (const piece of item.pieces) {
+        const key = `${item.id}:${piece.name}`;
+        const visual = await resolvePieceVisual(piece.name, piece.wardrobeItemId);
+        if (visual) {
+          mapping[key] = visual.url;
+          if (visual.isUser) created.push(visual.url);
+        }
+      }
+      if (active) setVisuals(mapping);
+      else created.forEach((url) => URL.revokeObjectURL(url));
+    }
+    void load();
+    return () => {
+      active = false;
+      created.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [items]);
 
   const occasions = useMemo(
     () => ["All", ...new Set(items.map((item) => item.context.occasion).filter(Boolean))],
@@ -76,8 +104,8 @@ export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }
                     <div className="grid grid-cols-4 gap-2 mb-3">
                       {item.pieces.slice(0, 4).map((piece) => (
                         <div key={`image-${piece.name}`} className="aspect-square overflow-hidden bg-forest/5 border border-line" title={piece.name}>
-                          {piece.product?.image ? (
-                            <img src={piece.product.image} alt="" className="h-full w-full object-cover" />
+                          {visuals[`${item.id}:${piece.name}`] || piece.product?.image ? (
+                            <img src={visuals[`${item.id}:${piece.name}`] || piece.product?.image} alt="" className="h-full w-full object-cover" />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center text-forest/35"><Shirt size={16} /></div>
                           )}
