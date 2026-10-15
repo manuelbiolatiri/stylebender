@@ -1,4 +1,5 @@
 import type { ProductReference } from "@/lib/outfit";
+import { getReviewedGarmentImage } from "./garment-assets";
 
 /**
  * The local catalog is deliberately not presented as retailer inventory.
@@ -12,6 +13,12 @@ export const localCatalog: ProductReference[] = [
   { id: "local-charcoal-trousers", source: "local-catalog", name: "Charcoal tailored trousers", image: "/demo-wardrobe/charcoal-trousers.png" },
   { id: "local-brown-loafers", source: "local-catalog", name: "Dark brown penny loafers", image: "/demo-wardrobe/brown-loafers.png" },
 ];
+
+export function getTrustedCatalogProduct(product: ProductReference | undefined, garmentName: string) {
+  if (!product) return undefined;
+  const image = getReviewedGarmentImage(garmentName, product.image);
+  return image ? { ...product, image } : undefined;
+}
 
 /** No retailer feed is connected in this MVP amendment. Keep this empty until listings are verified. */
 export function getVerifiedRetailerListings(_garmentName: string): ProductReference[] {

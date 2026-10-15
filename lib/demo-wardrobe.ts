@@ -1,4 +1,4 @@
-import { saveWardrobeItem, type WardrobeItem } from "@/lib/wardrobe";
+import { saveWardrobeItem, type WardrobeItem } from "./wardrobe";
 
 export type DemoWardrobeItem = WardrobeItem & { image: string };
 

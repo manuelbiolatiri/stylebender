@@ -66,6 +66,10 @@ export function readSelectedSampleWeather(): SampleWeather {
   return sampleWeatherOptions.includes(value as SampleWeather) ? value as SampleWeather : "Mild";
 }
 
+export function hasSelectedSampleWeather() {
+  return typeof window !== "undefined" && Boolean(localStorage.getItem("stylebender-sample-weather"));
+}
+
 export function selectSampleWeather(weather: SampleWeather) {
   localStorage.setItem("stylebender-sample-weather", weather);
   window.dispatchEvent(new CustomEvent("stylebender-sample-updated"));

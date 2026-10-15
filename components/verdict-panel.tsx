@@ -26,6 +26,7 @@ import {
 } from "@/lib/outfit";
 import { findCatalogProduct, getVerifiedRetailerListings } from "@/lib/products";
 import { getWardrobeMetadata, reconcileGarmentOwnership, resolvePieceVisual } from "@/lib/wardrobe";
+import { getReviewedGarmentImage } from "@/lib/garment-assets";
 
 export function VerdictPanel({
   onSave,
@@ -249,7 +250,7 @@ export function VerdictPanel({
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-6 max-w-md" aria-label="Recommended outfit garments">
               {result.pieces.map((piece) => {
                 const resolved = resolvedImages[piece.name];
-                const image = resolved?.url ?? piece.product?.image;
+                const image = resolved?.url ?? getReviewedGarmentImage(piece.name, piece.product?.image);
                 return (
                   <button
                     key={`visual-${piece.name}`}
@@ -299,7 +300,7 @@ export function VerdictPanel({
           )}
 
           {verdict === "Change One Piece" && result && (
-            <div className="mt-5 bg-paper/10 border border-ivory/20 p-4 text-xs">
+            <div className="mobile-piece-replacement mt-5 bg-paper/10 border border-ivory/20 p-4 text-xs">
               <p className="font-medium text-ivory mb-2">Select which piece to change:</p>
               <div className="flex flex-col gap-1.5 mb-3">
                 {result.pieces.map((piece) => (
@@ -359,7 +360,7 @@ export function VerdictPanel({
             </p>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="verdict-choice-row flex flex-wrap gap-2">
             {(["Wear", "Change One Piece", "Elevate", "Skip"] as const).map((choice) => (
               <button
                 key={choice}
@@ -376,11 +377,43 @@ export function VerdictPanel({
               </button>
             ))}
           </div>
+          <div className="mobile-verdict-actions lg:hidden mt-3 grid grid-cols-[1.5fr_1fr_1fr] gap-2">
+            <button
+              type="button"
+              onClick={() => handleVerdictChoice("Change One Piece")}
+              disabled={!result || status === "loading"}
+              className="min-h-11 bg-ivory text-forest px-2.5 text-xs font-medium disabled:opacity-40"
+            >
+              Change a piece <ArrowRight className="inline ml-1" size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onAction("Elevate")}
+              disabled={!result}
+              className="min-h-11 border border-ivory/30 text-ivory px-2 text-xs disabled:opacity-40"
+            >
+              Elevate
+            </button>
+            <button
+              type="button"
+              onClick={toggleSave}
+              disabled={!result || status === "error"}
+              className="min-h-11 border border-ivory/30 text-ivory px-2 text-xs disabled:opacity-40"
+            >
+              {saved ? "Saved" : "Save"}
+            </button>
+          </div>
+          <details className="mobile-rationale lg:hidden mt-4 border-t border-ivory/20 pt-3 text-xs text-ivory/75">
+            <summary className="cursor-pointer text-ivory">Why this works</summary>
+            <div className="mt-3 space-y-2">
+              {(result?.reasons ?? []).map((reason, idx) => <p key={idx}>{reason}</p>)}
+            </div>
+          </details>
         </div>
       </div>
 
       {/* Right Column: Garments & Rationale */}
-      <div className="min-w-0 w-full bg-paper border border-line p-7 lg:p-10 flex flex-col justify-between">
+      <div className="verdict-secondary min-w-0 w-full bg-paper border border-line p-7 lg:p-10 flex flex-col justify-between">
         <div>
           <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
             Styling breakdown
@@ -431,7 +464,7 @@ export function VerdictPanel({
                     >
                       <div className="relative w-14 h-14 shrink-0 overflow-hidden bg-forest/5 border border-line">
                         {imgSrc ? (
-                          <img src={imgSrc} alt={piece.name} className="w-full h-full object-cover" />
+                            <img src={getReviewedGarmentImage(piece.name, imgSrc)} alt={piece.name} className="w-full h-full object-cover" />
                         ) : (
                           <div role="img" aria-label={`No image available for ${piece.name}`} className="w-full h-full flex items-center justify-center text-forest/40">
                             <Shirt size={20} />
@@ -466,7 +499,7 @@ export function VerdictPanel({
         </div>
 
         {/* Footer Actions */}
-        <div className="border-t border-line mt-8 pt-6 flex flex-wrap gap-2.5 items-center">
+        <div className="verdict-footer-actions border-t border-line mt-8 pt-6 flex flex-wrap gap-2.5 items-center">
           <button
             disabled={!result}
             onClick={() => onAction("Achieve")}

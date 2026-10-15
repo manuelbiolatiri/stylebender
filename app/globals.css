@@ -93,6 +93,8 @@ select {
   .mobile-panel > .mobile-panel-title { margin-top: 0; }
   .mobile-panel > .mobile-panel-title + * { margin-top: 1rem; }
   .mobile-screen-scroll main { padding-bottom: 1.5rem; }
+  .mobile-screen-scroll button,
+  .mobile-screen-scroll select { min-height: 44px; }
   .mobile-screen-scroll .mt-8 { margin-top: 1.25rem; }
   .mobile-screen-scroll .bg-paper.border { border-radius: 0.875rem; }
   .mobile-panel { padding-left: 16px; padding-right: 16px; }
@@ -114,21 +116,28 @@ select {
   .verdict-panel > div:nth-child(2) .border-t { margin-top: 0; padding-top: 0; border-top: 0; }
   .verdict-panel > div:nth-child(2) .border-t > div:first-child { margin-bottom: 12px; }
   .verdict-panel > div:nth-child(2) .border-t > div:last-child { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .verdict-choice-row { display: none; }
+  .verdict-footer-actions { display: none; }
+  .verdict-secondary { display: none; }
+  .mobile-verdict-actions button,
+  .mobile-piece-replacement button { min-height: 44px; }
+  .mobile-rationale summary { min-height: 44px; display: flex; align-items: center; }
   .wardrobe-panel { margin-top: 1rem; }
-  .wardrobe-panel > div:first-child { padding: 0; border: 0; background: transparent; }
-  .wardrobe-panel > div:first-child > div:first-child { display: none; }
-  .wardrobe-panel > div:first-child > div:nth-child(2) { display: none; }
-  .wardrobe-panel > div:first-child > div:nth-child(3) { margin-top: 1rem; }
-  .wardrobe-panel > div:first-child > div:nth-child(4) { margin-top: 1rem; }
-  .wardrobe-panel > div:first-child > div:nth-child(4) > p { display: none; }
-  .wardrobe-panel > div:first-child > div:nth-child(4) > div { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 3px; }
-  .wardrobe-panel > div:first-child > div:nth-child(4) button { white-space: nowrap; border-radius: 9999px; }
-  .wardrobe-panel > div:nth-child(4) { padding: 16px; border-radius: 14px; }
-  .wardrobe-panel > div:nth-child(4) h2 { font-size: 2rem; line-height: 1; }
-  .wardrobe-panel > div:nth-child(4) > div:first-child p:nth-child(3) { font-size: 13px; line-height: 1.45; }
-  .wardrobe-panel > div:nth-child(4) > div:nth-child(2) { margin-top: 14px; }
-  .wardrobe-panel > div:nth-child(4) > div:nth-child(2) > article { padding: 8px; border-radius: 12px; }
-  .wardrobe-panel > div:nth-child(4) > div:nth-child(2) > article button { min-height: 36px; }
+  .wardrobe-own-upload { padding: 0; border: 0; background: transparent; }
+  .wardrobe-own-upload > div:first-child > div:first-child { display: none; }
+  .wardrobe-own-upload > div:first-child > div:last-child { width: 100%; }
+  .wardrobe-own-upload > div:first-child > div:last-child label { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; width: 100%; }
+  .wardrobe-own-upload > .wardrobe-category-filters { margin-top: 1rem; }
+  .wardrobe-category-filters > p { display: none; }
+  .wardrobe-category-filters > div { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 3px; }
+  .wardrobe-category-filters button { white-space: nowrap; border-radius: 9999px; min-height: 44px; }
+  .wardrobe-tabs button { min-height: 44px; }
+  .wardrobe-explore { padding: 16px; border-radius: 14px; }
+  .wardrobe-explore h2 { font-size: 2rem; line-height: 1; }
+  .wardrobe-explore > div:first-child p:nth-child(3) { font-size: 13px; line-height: 1.45; }
+  .wardrobe-explore-grid { margin-top: 14px; }
+  .wardrobe-explore-grid > article { padding: 8px; border-radius: 12px; }
+  .wardrobe-explore-grid > article button { min-height: 36px; }
   .saved-panel { margin-top: 1rem; }
   .saved-panel > div:first-child { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 16px; padding-bottom: 2px; }
   .saved-panel > div:first-child span { white-space: nowrap; }

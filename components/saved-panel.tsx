@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Bookmark, Shirt, Trash2 } from "lucide-react";
 import { readOutfits, removeOutfit, setCurrentOutfit, type OutfitVersion } from "@/lib/outfit";
 import { resolvePieceVisual } from "@/lib/wardrobe";
+import { getReviewedGarmentImage } from "@/lib/garment-assets";
 
 export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }) {
   const [items, setItems] = useState<OutfitVersion[]>([]);
@@ -104,8 +105,8 @@ export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }
                     <div className="grid grid-cols-4 gap-2 mb-3">
                       {item.pieces.slice(0, 4).map((piece) => (
                         <div key={`image-${piece.name}`} className="aspect-square overflow-hidden bg-forest/5 border border-line" title={piece.name}>
-                          {visuals[`${item.id}:${piece.name}`] || piece.product?.image ? (
-                            <img src={visuals[`${item.id}:${piece.name}`] || piece.product?.image} alt="" className="h-full w-full object-cover" />
+                          {visuals[`${item.id}:${piece.name}`] || getReviewedGarmentImage(piece.name, piece.product?.image) ? (
+                            <img src={visuals[`${item.id}:${piece.name}`] || getReviewedGarmentImage(piece.name, piece.product?.image)} alt="" className="h-full w-full object-cover" />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center text-forest/35"><Shirt size={16} /></div>
                           )}

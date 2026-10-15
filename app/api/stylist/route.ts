@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { OutfitContext, WardrobeContextItem } from "@/lib/outfit";
 import { auth } from "@/auth";
 import { buildStylistPrompt } from "@/lib/stylist-prompt";
+import { validateStylistResponse, type StylistResponse } from "@/lib/stylist-response";
 
 const requestWindow = new Map<string, { count: number; resetAt: number }>();
 const MAX_REQUESTS = Number(process.env.GEMINI_MAX_REQUESTS_PER_HOUR ?? 8);
@@ -40,7 +41,7 @@ const responseSchema = z.object({
   reasons: z.array(z.string()).max(3),
   pieces: z.array(
     z.object({ name: z.string(), owned: z.boolean(), note: z.string() }),
-  ),
+  ).min(3).max(6),
 });
 
 export async function POST(request: Request) {
@@ -188,6 +189,11 @@ export async function POST(request: Request) {
       },
       { status: 502 },
     );
+  }
+  const qualityIssue = validateStylistResponse(output.data as StylistResponse);
+  if (qualityIssue) {
+    console.error("[Gemini] response failed recommendation quality checks", { model: usedModel, qualityIssue });
+    return NextResponse.json({ status: "error", error: "Gemini returned an incomplete or inconsistent outfit. Try again." }, { status: 502 });
   }
   return NextResponse.json({ status: "ready", data: output.data });
 }

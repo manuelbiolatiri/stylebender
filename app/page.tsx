@@ -23,7 +23,7 @@ import { HeroMotion } from "@/components/hero-motion";
 import { defaultOutfitContext, readCurrentOutfit, type OutfitContext } from "@/lib/outfit";
 import { getWardrobeMetadata } from "@/lib/wardrobe";
 import { SavedPanel } from "@/components/saved-panel";
-import { getSampleWardrobeContext, readSelectedSampleWeather, type SampleWeather } from "@/lib/sample-wardrobes";
+import { getSampleWardrobeContext, hasSelectedSampleWeather, readSelectedSampleWeather } from "@/lib/sample-wardrobes";
 
 const occasions = [
   ["Church", "Polished, expressive and considered", "/sunday-menswear-editorial.jpg"],
@@ -192,6 +192,14 @@ export default function Home() {
     setActive("Style Me", false, target);
   }
 
+  const wardrobeContextLabel = profileContext.wardrobe.length > 0 && profileContext.sampleWardrobe?.length
+    ? "Using wardrobe + sample references"
+    : profileContext.wardrobe.length > 0
+      ? "Using my wardrobe"
+      : profileContext.sampleWardrobe?.length
+        ? "Using sample references"
+        : "No wardrobe context yet";
+
   // Load URL state & popstate listener
   useEffect(() => {
     function restoreStateFromUrl() {
@@ -234,13 +242,13 @@ export default function Home() {
       }
 
       const profile = JSON.parse(localStorage.getItem("stylebender-profile") ?? "null");
+      const sampleSelected = hasSelectedSampleWeather();
       setProfileContext((current) => ({
         ...current,
-        styles: profile?.styles ?? current.styles,
+        styles: profile?.confirmed ? (profile.styles ?? []) : [],
         budget: profile?.budget ?? current.budget,
         wardrobe: getWardrobeMetadata().map((item) => item.name),
-        weather: readSelectedSampleWeather(),
-        sampleWardrobe: getSampleWardrobeContext(readSelectedSampleWeather()),
+        ...(sampleSelected ? { weather: readSelectedSampleWeather(), sampleWardrobe: getSampleWardrobeContext(readSelectedSampleWeather()) } : { weather: undefined, sampleWardrobe: undefined }),
       }));
     } catch {
       /* ignore malformed local metadata */
@@ -269,13 +277,13 @@ export default function Home() {
   useEffect(() => {
     try {
       const profile = JSON.parse(localStorage.getItem("stylebender-profile") ?? "null");
+      const sampleSelected = hasSelectedSampleWeather();
       setProfileContext((current) => ({
         ...current,
-        styles: profile?.styles ?? current.styles,
+        styles: profile?.confirmed ? (profile.styles ?? []) : [],
         budget: profile?.budget ?? current.budget,
         wardrobe: getWardrobeMetadata().map((item) => item.name),
-        weather: readSelectedSampleWeather(),
-        sampleWardrobe: getSampleWardrobeContext(readSelectedSampleWeather()),
+        ...(sampleSelected ? { weather: readSelectedSampleWeather(), sampleWardrobe: getSampleWardrobeContext(readSelectedSampleWeather()) } : { weather: undefined, sampleWardrobe: undefined }),
       }));
     } catch {
       /* ignore malformed local metadata */
@@ -310,7 +318,7 @@ export default function Home() {
                 Style my look <ChevronRight size={17} />
               </button>
               <div className="mobile-home-context mt-16 pt-4 border-t border-line flex items-center justify-between text-xs text-muted">
-                <span className="inline-flex items-center gap-2"><Shirt size={16} className="text-forest" /> Using my wardrobe</span>
+                <span className="inline-flex items-center gap-2"><Shirt size={16} className="text-forest" /> {wardrobeContextLabel}</span>
                 <button type="button" onClick={() => setActive("Wardrobe")} className="text-forest inline-flex items-center gap-1">Change <ChevronRight size={14} /></button>
               </div>
             </section>
@@ -592,14 +600,16 @@ function Placeholder({
 }) {
   return (
     <main className="mobile-panel w-full min-w-0 px-5 lg:px-20 pt-6 lg:pt-16 max-w-6xl">
-      <button
-        onClick={() => setActive("Discover")}
-        className="lg:hidden inline-flex items-center gap-2 text-xs text-muted mb-6 min-h-10 hover:text-forest"
-        aria-label="Back to Discover"
-      >
-        <ChevronRight className="rotate-180" size={17} />
-        Discover
-      </button>
+      {active === "Style Me" && (
+        <button
+          onClick={() => setActive("Discover")}
+          className="lg:hidden inline-flex items-center gap-2 text-xs text-muted mb-6 min-h-10 hover:text-forest"
+          aria-label="Back to Home"
+        >
+          <ChevronRight className="rotate-180" size={17} />
+          Home
+        </button>
+      )}
 
       {active !== "Profile" && (
         <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">

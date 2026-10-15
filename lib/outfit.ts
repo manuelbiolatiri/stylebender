@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { findCatalogProduct } from "./products";
+import { findCatalogProduct, getTrustedCatalogProduct, inferGarmentCategory } from "./products";
 import { getWardrobeMetadata, reconcileGarmentOwnership } from "./wardrobe";
 
 export type ProductReference = {
@@ -100,7 +100,7 @@ export const outfitSchema = z.object({
 export const defaultOutfitContext: OutfitContext = {
   occasion: "",
   budget: "£150–£300",
-  styles: ["Tailored / elegant", "Quiet luxury", "Smart casual"],
+  styles: [],
   wardrobe: [],
   request: "Give me one strong look",
 };
@@ -118,7 +118,7 @@ export function normaliseOutfitVisuals(outfit: OutfitVersion): OutfitVersion {
         ...(ownership.wardrobeItemId ? { wardrobeItemId: ownership.wardrobeItemId } : { wardrobeItemId: undefined }),
       };
       if (reconciled.product?.source !== "local-catalog") return reconciled;
-      const trustedProduct = findCatalogProduct(reconciled.name);
+      const trustedProduct = getTrustedCatalogProduct(findCatalogProduct(reconciled.name), reconciled.name);
       return trustedProduct
         ? { ...reconciled, product: trustedProduct }
         : { ...reconciled, product: undefined };
@@ -133,11 +133,12 @@ export function replaceOutfitPiece(
 ): OutfitPiece[] {
   const selected = original.find((piece) => piece.name === selectedName);
   if (!selected) return original;
+  const selectedCategory = inferGarmentCategory(selected.name);
   const replacement = generated.find((piece) =>
-    piece.name !== selected.name &&
-    // Keep the request scoped to the same garment slot where possible.
-    piece.name.toLowerCase().split(/\s+/).some((word) => selected.name.toLowerCase().includes(word)),
-  ) ?? generated.find((piece) => piece.name !== selected.name);
+    piece.name !== selected.name && inferGarmentCategory(piece.name) === selectedCategory,
+  ) ?? generated.find((piece) =>
+    piece.name !== selected.name && piece.name.toLowerCase().split(/\s+/).some((word) => selected.name.toLowerCase().includes(word)),
+  );
   if (!replacement) return original;
   return original.map((piece) => piece.name === selectedName ? replacement : piece);
 }

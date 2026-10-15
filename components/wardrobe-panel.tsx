@@ -196,7 +196,7 @@ export function WardrobePanel() {
 
   return (
     <div className="wardrobe-panel mt-5 lg:mt-10 max-w-5xl">
-      <div className="mb-5 flex rounded-full border border-line bg-paper p-1 max-w-sm" role="tablist" aria-label="Wardrobe views">
+      <div className="wardrobe-tabs mb-5 flex rounded-full border border-line bg-paper p-1 max-w-sm" role="tablist" aria-label="Wardrobe views">
         {(["explore", "mine"] as const).map((tab) => (
           <button
             key={tab}
@@ -211,7 +211,7 @@ export function WardrobePanel() {
         ))}
       </div>
       {activeTab === "mine" && <>
-      <div className="bg-paper border border-line p-6 lg:p-8">
+      <div className="wardrobe-own-upload bg-paper border border-line p-6 lg:p-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
           <div>
             <p className="uppercase tracking-[.25em] text-[10px] text-bronze">
@@ -243,7 +243,7 @@ export function WardrobePanel() {
               ) : (
                 <>
                   <ImagePlus className="inline mr-2" size={15} />
-                  Add a piece
+                  Add garment
                   <input
                     className="sr-only"
                     type="file"
@@ -300,7 +300,7 @@ export function WardrobePanel() {
           </div>
         )}
 
-        <div className="mt-7">
+        <div className="wardrobe-category-filters mt-7">
           <p className="text-[11px] uppercase tracking-wider text-muted mb-2 font-medium">Browse by category</p>
           <div className="flex gap-2 flex-wrap">
             {filterOptions.map((name) => (
@@ -322,7 +322,7 @@ export function WardrobePanel() {
       </div>
       </>}
 
-      {activeTab === "explore" && <div className="mt-4 bg-forest text-ivory p-6 lg:p-8">
+      {activeTab === "explore" && <div className="wardrobe-explore mt-4 bg-forest text-ivory p-6 lg:p-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="uppercase tracking-[.25em] text-[10px] text-bronze">Sample wardrobe</p>
@@ -347,7 +347,7 @@ export function WardrobePanel() {
             </select>
           </label>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
+        <div className="wardrobe-explore-grid grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
           {sampleWardrobes[sampleWeather].map((item) => (
             <article key={item.id} className="bg-ivory/10 border border-ivory/15 p-2 min-w-0">
               <div className="aspect-square bg-ivory/10 overflow-hidden flex items-center justify-center">
