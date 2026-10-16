@@ -148,6 +148,8 @@ export default function Home() {
   const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
   const [sessionEmail, setSessionEmail] = useState<string | undefined>();
   const screenRef = useRef<HTMLDivElement>(null);
+  const occasionInputRef = useRef<HTMLTextAreaElement>(null);
+  const [showOccasionHint, setShowOccasionHint] = useState(false);
   const scrollPositions = useRef<Record<string, number>>({});
 
   function setSelected(occasion: string) {
@@ -186,7 +188,12 @@ export default function Home() {
 
   function startStyling(occasionToStyle: string) {
     const target = occasionToStyle.trim();
-    if (!target) return;
+    if (!target) {
+      setShowOccasionHint(true);
+      occasionInputRef.current?.focus();
+      return;
+    }
+    setShowOccasionHint(false);
     setSelected(target);
     setAutoGenerateVerdict(true);
     setActive("Style Me", false, target);
@@ -308,13 +315,16 @@ export default function Home() {
               <label htmlFor="mobile-occasion" className="sr-only">Describe your occasion</label>
               <textarea
                 id="mobile-occasion"
+                ref={occasionInputRef}
+                aria-describedby={showOccasionHint ? "mobile-occasion-hint" : undefined}
                 value={customOccasion || selected}
-                onChange={(event) => { setCustomOccasion(event.target.value); setSelected(event.target.value); }}
+                onChange={(event) => { setCustomOccasion(event.target.value); setSelected(event.target.value); if (event.target.value.trim()) setShowOccasionHint(false); }}
                 onFocus={(event) => event.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" })}
                 placeholder="A dinner date in Manchester on a chilly evening..."
                 className="mobile-occasion-input mt-5 w-full min-h-[144px] resize-none bg-paper border border-line p-4 text-[15px] leading-6 text-ink placeholder:text-muted/70 focus:border-forest focus:outline-none"
               />
-              <button type="button" onClick={() => startStyling(customOccasion || selected)} disabled={!(customOccasion || selected).trim()} className="mt-4 w-full min-h-[50px] bg-forest text-ivory px-5 py-3 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-45 disabled:cursor-not-allowed">
+              {showOccasionHint && <p id="mobile-occasion-hint" role="status" className="mt-2 text-sm text-forest">Tell us what you are dressing for to begin.</p>}
+              <button type="button" onClick={() => startStyling(customOccasion || selected)} className="mt-4 w-full min-h-[50px] bg-forest text-ivory px-5 py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-forest/90 active:bg-forest/95">
                 Style my look <ChevronRight size={17} />
               </button>
               <div className="mobile-home-context mt-16 pt-4 border-t border-line flex items-center justify-between text-xs text-muted">

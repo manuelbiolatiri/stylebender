@@ -1,6 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#14251E",
+};
+
 export const metadata: Metadata = {
+  appleWebApp: { capable: true, title: "Stylebender", statusBarStyle: "black-translucent" },
   title: "Stylebender — Discover your style",
   description: "Your personal AI menswear stylist.",
   manifest: "/manifest.webmanifest",

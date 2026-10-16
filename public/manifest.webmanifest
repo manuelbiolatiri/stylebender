@@ -12,5 +12,8 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "id": "/",
+  "description": "Your personal menswear stylist.",
+  "orientation": "portrait-primary"
 }
