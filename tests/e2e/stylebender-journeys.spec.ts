@@ -373,16 +373,18 @@ test.describe('Stylebender MVP Usability & Journeys', () => {
     await page.goto('/?view=Elevate');
 
     // Before card is visible
-    await expect(page.getByText('Before · Base Look')).toBeVisible();
+    await expect(page.getByText('Original · Your current look')).toBeVisible();
     await expect(page.getByText('The subtle evening')).toBeVisible();
 
     // Create elevated version
-    await page.getByRole('button', { name: /Create more polished version/i }).click();
+    await page.getByRole('button', { name: /Preview more polished look/i }).click();
 
-    // After card displays elevated title and Upgraded tag
+    // The proposal is explicitly labelled as a preview, with the changed piece marked
     await expect(page.getByRole('heading', { name: 'The velvet contrast' })).toBeVisible();
-    await expect(page.getByText('Upgraded', { exact: true })).toBeVisible();
+    await expect(page.getByText('Changed', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /Adopt this look/i })).toBeVisible();
+    await expect(page.getByText('Not applied')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Keep original/i })).toBeVisible();
   });
 
   test('Achieve panel reconciles owned vs missing garments without invented prices', async ({

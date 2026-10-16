@@ -618,14 +618,13 @@ function Placeholder({
 }) {
   return (
     <main className="mobile-panel w-full min-w-0 px-5 lg:px-20 pt-6 lg:pt-16 max-w-6xl">
-      {active === "Style Me" && (
-        <button
-          onClick={() => setActive("Discover")}
-          className="lg:hidden inline-flex items-center gap-2 text-xs text-muted mb-6 min-h-10 hover:text-forest"
-          aria-label="Back to Home"
-        >
+      {(active === "Style Me" || active === "Elevate") && (
+        <button type="button"
+          onClick={() => setActive(active === "Elevate" ? "Style Me" : "Discover")}
+          className={`inline-flex items-center gap-2 text-sm text-forest mb-5 min-h-11 hover:text-bronze ${active === "Elevate" ? "" : "lg:hidden"}`}
+          aria-label={active === "Elevate" ? "Back to My Look" : "Back to Home"}>
           <ChevronRight className="rotate-180" size={17} />
-          Home
+          {active === "Elevate" ? "Back to My Look" : "Home"}
         </button>
       )}
 
@@ -651,7 +650,7 @@ function Placeholder({
       ) : active === "Achieve" ? (
         <AchievePanel onAddToWardrobe={() => setActive("Wardrobe")} />
       ) : active === "Elevate" ? (
-        <ElevatePanel />
+        <ElevatePanel onReturnToLook={() => setActive("Style Me")} />
       ) : active === "Try On" ? (
         <TryOnPanel />
       ) : active === "Style IQ" ? (
