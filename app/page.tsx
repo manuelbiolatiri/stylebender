@@ -618,13 +618,13 @@ function Placeholder({
 }) {
   return (
     <main className="mobile-panel w-full min-w-0 px-5 lg:px-20 pt-6 lg:pt-16 max-w-6xl">
-      {(active === "Style Me" || active === "Elevate") && (
+      {(active === "Style Me" || active === "Elevate" || active === "Try On") && (
         <button type="button"
-          onClick={() => setActive(active === "Elevate" ? "Style Me" : "Discover")}
-          className={`inline-flex items-center gap-2 text-sm text-forest mb-5 min-h-11 hover:text-bronze ${active === "Elevate" ? "" : "lg:hidden"}`}
-          aria-label={active === "Elevate" ? "Back to My Look" : "Back to Home"}>
+          onClick={() => setActive(active === "Style Me" ? "Discover" : "Style Me")}
+          className={`inline-flex items-center gap-2 text-sm text-forest mb-5 min-h-11 hover:text-bronze ${active === "Style Me" ? "lg:hidden" : ""}`}
+          aria-label={active === "Style Me" ? "Back to Home" : "Back to My Look"}>
           <ChevronRight className="rotate-180" size={17} />
-          {active === "Elevate" ? "Back to My Look" : "Home"}
+          {active === "Style Me" ? "Home" : "Back to My Look"}
         </button>
       )}
 
