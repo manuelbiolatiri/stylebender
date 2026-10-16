@@ -35,3 +35,7 @@ Use this skill when the task is to improve or review the Stylebender product acr
 - For outfit/recommendation review, read [references/recommendation-rubric.md](references/recommendation-rubric.md).
 - For component/token decisions, read [references/mobile-primitives.md](references/mobile-primitives.md).
 - For future invocation and report shape, read [references/invocation.md](references/invocation.md).
+
+## Benchmarking established products
+
+When the task involves inspiration from Alta, Whering, MR PORTER or any established brand, first use the local `brand-pattern-transfer` skill and `docs/BRAND_PATTERN_BENCHMARK.md`. Those public sources establish transferable principles **only**, not permission to change MVP scope or proof of another app's private UI. `docs/MVP_SCOPE.md` and `docs/MOBILE_DESIGN_V2.md` override older reference proposals. Preserve original Stylebender identity and report current-cycle evidence.
