@@ -27,6 +27,7 @@ import {
 import { findCatalogProduct, getVerifiedRetailerListings } from "@/lib/products";
 import { getWardrobeMetadata, reconcileGarmentOwnership, resolvePieceVisual } from "@/lib/wardrobe";
 import { getReviewedGarmentImage } from "@/lib/garment-assets";
+import { getOutfitPieceLabel } from "@/lib/outfit-piece-label";
 
 export function VerdictPanel({
   onSave,
@@ -247,7 +248,7 @@ export function VerdictPanel({
           </p>
 
           {result && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-6 max-w-md" aria-label="Recommended outfit garments">
+            <div className="mobile-look-grid grid grid-cols-3 sm:grid-cols-4 gap-3 mt-5 max-w-md" aria-label="Recommended outfit garments">
               {result.pieces.map((piece) => {
                 const resolved = resolvedImages[piece.name];
                 const image = resolved?.url ?? getReviewedGarmentImage(piece.name, piece.product?.image);
@@ -269,8 +270,8 @@ export function VerdictPanel({
                         <div role="img" aria-label={`No image available for ${piece.name}`} className="h-full w-full flex items-center justify-center text-ivory/40"><Shirt size={18} /></div>
                       )}
                     </div>
-                    <span className="block min-w-0 text-[9px] leading-3 text-ivory/75 mt-1 line-clamp-2 break-words">{piece.name}</span>
-                    <span className="block text-[9px] text-bronze mt-0.5">{piece.owned ? "Yours" : "Reference"}</span>
+                    <span className="garment-name block min-w-0 text-xs leading-4 text-ivory mt-2 line-clamp-2 break-words">{piece.name}</span>
+                    <span className="garment-status block text-[11px] leading-4 text-bronze mt-0.5">{getOutfitPieceLabel(piece, result.context.sampleWardrobe ?? [])}</span>
                   </button>
                 );
               })}
@@ -377,12 +378,12 @@ export function VerdictPanel({
               </button>
             ))}
           </div>
-          <div className="mobile-verdict-actions lg:hidden mt-3 grid grid-cols-[1.5fr_1fr_1fr] gap-2">
+          <div className="mobile-verdict-actions lg:hidden mt-4 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleVerdictChoice("Change One Piece")}
               disabled={!result || status === "loading"}
-              className="min-h-11 bg-ivory text-forest px-2.5 text-xs font-medium disabled:opacity-40"
+              className="col-span-2 min-h-12 rounded-lg bg-ivory text-forest px-3 text-sm font-medium disabled:opacity-40"
             >
               Change a piece <ArrowRight className="inline ml-1" size={14} />
             </button>
@@ -390,15 +391,16 @@ export function VerdictPanel({
               type="button"
               onClick={() => onAction("Elevate")}
               disabled={!result}
-              className="min-h-11 border border-ivory/30 text-ivory px-2 text-xs disabled:opacity-40"
+              className="min-h-12 rounded-lg border border-ivory/30 text-ivory px-3 text-sm disabled:opacity-40"
             >
               Elevate
             </button>
             <button
               type="button"
               onClick={toggleSave}
+              aria-pressed={saved}
               disabled={!result || status === "error"}
-              className="min-h-11 border border-ivory/30 text-ivory px-2 text-xs disabled:opacity-40"
+              className="min-h-12 rounded-lg border border-ivory/30 text-ivory px-3 text-sm disabled:opacity-40"
             >
               {saved ? "Saved" : "Save"}
             </button>

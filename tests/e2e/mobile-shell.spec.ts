@@ -13,15 +13,16 @@ const sampleOutfit: OutfitVersion = {
   id: 'mobile-shell-look',
   createdAt: Date.now(),
   source: 'verdict',
-  context: { occasion: 'Date Night', budget: '£150–£300', styles: ['Tailored / elegant'], wardrobe: [], request: 'Give me one strong look' },
+  context: { occasion: 'Date Night', budget: '£150–£300', styles: [], wardrobe: [], request: 'Give me one strong look' },
   verdict: 'Wear',
   title: 'The evening tonal contrast',
   summary: 'A refined tonal look for a considered evening.',
   reasons: ['Tonal contrast creates depth without clutter.', 'Texture keeps the tailoring relaxed.'],
   pieces: [
     { name: 'Navy blazer', owned: false, note: 'Structured silhouette', product: { id: 'mobile-1', source: 'local-catalog', name: 'Navy blazer', image: '/demo-wardrobe/navy-blazer.png' } },
-    { name: 'Ivory Oxford shirt', owned: true, note: 'Soft contrast', product: { id: 'mobile-2', source: 'local-catalog', name: 'Ivory Oxford shirt', image: '/demo-wardrobe/ivory-oxford.png' } },
+    { name: 'Ivory Oxford shirt', owned: false, note: 'Soft contrast', product: { id: 'mobile-2', source: 'local-catalog', name: 'Ivory Oxford shirt', image: '/demo-wardrobe/ivory-oxford.png' } },
     { name: 'Stone chinos', owned: false, note: 'Clean break', product: { id: 'mobile-3', source: 'local-catalog', name: 'Stone chinos', image: '/demo-wardrobe/stone-chinos.png' } },
+    { name: 'Dark brown penny loafers', owned: false, note: 'Completes the look', product: { id: 'mobile-4', source: 'local-catalog', name: 'Dark brown penny loafers', image: '/demo-wardrobe/brown-loafers.png' } },
   ],
   version: 1,
   priceType: 'illustrative',
@@ -96,6 +97,8 @@ test.describe('Stylebender mobile app shell', () => {
     await primary.getByRole('button', { name: 'Saved', exact: true }).click();
     await expect(primary.getByRole('button', { name: 'Saved', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: /The evening tonal contrast/i })).toBeVisible();
+    await expect(primary.getByRole('button', { name: 'Saved', exact: true })).toHaveAttribute('aria-current', 'page');
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     await page.screenshot({ path: `${screenshotDir}/saved-390x844.png`, fullPage: false });
   });
 });

@@ -94,8 +94,12 @@ input,
 select {
   border-radius: 0.75rem;
 }
-.mobile-home-screen { background: var(--ivory); min-height: calc(100vh - 58px); }
-.mobile-occasion-input { border-radius: 0.75rem; }
+.mobile-home-screen { background: var(--ivory); min-height: 0; }
+.mobile-occasion-input { border-radius: 0.75rem; scroll-margin-top: 16px; }
+.mobile-style-submit { scroll-margin-bottom: 92px; }
+@media (max-width: 1023px) {
+  .mobile-home-screen:focus-within .mobile-home-context { margin-top: 1rem; }
+}
 .mobile-panel-title { font-size: 2.25rem; line-height: 1; }
 .mobile-panel > .eyebrow { margin-top: 0.25rem; }
 @media (max-width: 1023px) {
@@ -126,6 +130,8 @@ select {
   .verdict-panel > div:nth-child(2) .border-t { margin-top: 0; padding-top: 0; border-top: 0; }
   .verdict-panel > div:nth-child(2) .border-t > div:first-child { margin-bottom: 12px; }
   .verdict-panel > div:nth-child(2) .border-t > div:last-child { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .mobile-look-grid .garment-name { font-size: 12px; line-height: 1.35; }
+  .mobile-look-grid .garment-status { font-size: 11px; line-height: 1.4; }
   .verdict-choice-row { display: none; }
   .verdict-footer-actions { display: none; }
   .verdict-secondary { display: none; }

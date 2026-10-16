@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
+import path from 'node:path';
 
-const outputDir = '/Users/emmanuelbiolatiri/.gemini/antigravity-ide/brain/c5ae676b-4c88-434c-8b37-f2912cd3cb5d/screenshots';
+const outputDir = path.join(process.cwd(), 'test-results', 'stylebender-captures');
 
 const sampleOutfit = {
   id: 'screenshot-outfit-01',
@@ -32,7 +33,10 @@ const sampleOutfit = {
 };
 
 const viewports = [
+  { name: 'mobile-320', width: 320, height: 568 },
+  { name: 'mobile-375', width: 375, height: 667 },
   { name: 'mobile-390', width: 390, height: 844 },
+  { name: 'mobile-430', width: 430, height: 932 },
   { name: 'tablet-768', width: 768, height: 1024 },
   { name: 'desktop-1024', width: 1024, height: 900 },
   { name: 'desktop-1440', width: 1440, height: 900 },

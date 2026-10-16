@@ -328,7 +328,7 @@ export default function Home() {
               <button type="button" onClick={() => startStyling(customOccasion || selected)} className="mt-4 w-full min-h-[50px] bg-forest text-ivory px-5 py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-forest/90 active:bg-forest/95">
                 Style my look <ChevronRight size={17} />
               </button>
-              <div className="mobile-home-context mt-16 pt-4 border-t border-line flex items-center justify-between text-xs text-muted">
+              <div className="mobile-home-context mt-8 pt-4 border-t border-line flex items-center justify-between text-xs text-muted">
                 <span className="inline-flex items-center gap-2"><Shirt size={16} className="text-forest" /> {wardrobeContextLabel}</span>
                 <button type="button" onClick={() => setActive("Wardrobe")} className="text-forest inline-flex items-center gap-1">Change <ChevronRight size={14} /></button>
               </div>
