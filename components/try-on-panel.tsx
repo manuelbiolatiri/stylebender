@@ -1,152 +1,224 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import { AlertCircle, ShieldCheck, Trash2, Upload, X } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, Loader2, ShieldCheck, Shirt, Trash2 } from "lucide-react";
 
-type PreviewFile = {
-  id: string;
-  file: File;
-  url: string;
-};
+type Photo = { file: File; url: string };
 
-export function TryOnPanel() {
-  const [consent, setConsent] = useState(false);
-  const [files, setFiles] = useState<PreviewFile[]>([]);
-  const filesRef = useRef<PreviewFile[]>([]);
+async function preparePhoto(file: File): Promise<Photo> {
+  if (!file.type.startsWith("image/")) throw new Error("Choose an image file, not a video.");
+  if (file.size > 15_000_000) throw new Error("Choose an image smaller than 15 MB.");
 
-  useEffect(() => () => filesRef.current.forEach((item) => URL.revokeObjectURL(item.url)), []);
-
-  function addFiles(selection: FileList | null) {
-    if (!selection) return;
-    const next = Array.from(selection)
-      .filter((file) => file.type.startsWith("image/") || file.type.startsWith("video/"))
-      .filter((file) => file.size <= 50 * 1024 * 1024)
-      .map((file) => ({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file) }));
-    setFiles((current) => {
-      filesRef.current = [...current, ...next];
-      return filesRef.current;
+  const inputUrl = URL.createObjectURL(file);
+  try {
+    const image = new window.Image();
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("This photo could not be opened. Please use a JPEG or PNG."));
+      image.src = inputUrl;
     });
+    const scale = Math.min(1, 1280 / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Your browser could not prepare this photo.");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.8));
+    if (!blob || blob.size > 1_500_000) throw new Error("This image is too detailed. Choose a smaller photo.");
+    const compressed = new File([blob], "try-on-reference.jpg", { type: "image/jpeg" });
+    return { file: compressed, url: URL.createObjectURL(blob) };
+  } finally {
+    URL.revokeObjectURL(inputUrl);
   }
+}
 
-  function removeFile(id: string) {
-    setFiles((current) => {
-      const item = current.find((entry) => entry.id === id);
-      if (item) URL.revokeObjectURL(item.url);
-      filesRef.current = current.filter((entry) => entry.id !== id);
-      return filesRef.current;
-    });
-  }
-
-  function clearFiles() {
-    files.forEach((item) => URL.revokeObjectURL(item.url));
-    filesRef.current = [];
-    setFiles([]);
-  }
-
+function PhotoField({
+  label, helper, photo, onSelect, onRemove, person,
+}: {
+  label: string;
+  helper: string;
+  photo: Photo | null;
+  onSelect: (file: File) => void;
+  onRemove: () => void;
+  person?: boolean;
+}) {
   return (
-    <div className="mt-8 max-w-3xl bg-paper border border-line p-6 lg:p-8">
-      <div className="relative h-48 md:h-56 overflow-hidden -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 mb-8">
-        <Image
-          src="/fitting-room-editorial.jpg"
-          alt="Editorial fitting room with mirrored styling view"
-          fill
-          sizes="(max-width: 768px) 100vw, 800px"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-forest/80 via-forest/30 to-transparent" />
-        <span className="absolute bottom-4 left-6 eyebrow text-ivory">Experimental / Studio Preview</span>
+    <div className="rounded-2xl border border-line bg-ivory/50 p-3 min-w-0">
+      <div className="flex items-center gap-2 text-sm font-medium text-forest">
+        {person ? <Camera size={17} className="text-bronze" /> : <Shirt size={17} className="text-bronze" />}
+        {label}
       </div>
-
-      <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 text-amber-900 text-xs mb-6">
-        <AlertCircle size={15} className="shrink-0" />
-        <span>
-          <strong>Provider Offline:</strong> Generative virtual try-on is in development. No third-party image synthesis provider is currently connected. You can upload local reference imagery to preview styling privately.
-        </span>
-      </div>
-
-      <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
-        Local Visual Reference
-      </p>
-      <h2 className="serif text-3xl md:text-4xl mt-2">Try on, thoughtfully.</h2>
-      <p className="text-muted leading-6 mt-3 text-sm md:text-base">
-        Add reference photos or short video clips of yourself alongside recommended pieces.
-        Everything is previewed locally in your browser only. This does not claim physical drape, exact fit, or textile stretch.
-      </p>
-
-      <div className="mt-6 border border-dashed border-line p-8 text-center bg-ivory/20">
-        <Upload className="mx-auto text-bronze" size={24} />
-        <p className="text-sm font-medium mt-3">
-          {files.length ? `${files.length} file${files.length === 1 ? "" : "s"} loaded locally` : "Choose reference images or clips"}
-        </p>
-        <label className="inline-block border border-forest bg-forest text-ivory px-4 py-2 text-xs mt-3 cursor-pointer hover:bg-forest/90 transition-colors">
-          Select files
+      <p className="mt-1 text-xs text-muted leading-5 min-h-10">{helper}</p>
+      {photo ? (
+        <div className="relative mt-3 aspect-[4/5] rounded-xl overflow-hidden bg-forest/10">
+          <img src={photo.url} alt={label + " selected for try-on"} className="h-full w-full object-contain" />
+          <button
+            type="button" onClick={onRemove} aria-label={"Remove " + label.toLowerCase()}
+            className="absolute right-2 top-2 rounded-full min-h-11 min-w-11 inline-flex items-center justify-center bg-forest text-ivory"
+          ><Trash2 size={16} /></button>
+        </div>
+      ) : (
+        <label className="mt-3 aspect-[4/5] min-h-36 border-2 border-dashed border-line rounded-xl cursor-pointer flex flex-col items-center justify-center gap-3 bg-paper text-forest hover:border-bronze text-center px-3">
+          <span className="text-sm font-medium">Choose a photo</span>
+          <span className="text-xs text-muted">JPEG, PNG or a phone photo</span>
           <input
-            className="sr-only"
-            type="file"
-            accept="image/*,video/*"
-            multiple
+            type="file" accept="image/*" className="sr-only"
+            aria-label={"Upload " + label.toLowerCase()}
             onChange={(event) => {
-              addFiles(event.target.files);
+              const file = event.currentTarget.files?.[0];
+              if (file) onSelect(file);
               event.currentTarget.value = "";
             }}
           />
         </label>
-        <p className="text-[11px] text-muted mt-2">
-          Stored locally in your browser session · never transmitted without provider connection
-        </p>
-      </div>
-
-      {files.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5">
-          {files.map((item) => (
-            <article key={item.id} className="relative bg-forest overflow-hidden aspect-[4/5] border border-line">
-              {item.file.type.startsWith("video/") ? (
-                <video src={item.url} controls muted playsInline className="w-full h-full object-cover" />
-              ) : (
-                <img src={item.url} alt={item.file.name} className="w-full h-full object-cover" />
-              )}
-              <button
-                type="button"
-                onClick={() => removeFile(item.id)}
-                aria-label={`Remove ${item.file.name}`}
-                className="absolute top-2 right-2 bg-forest/85 text-ivory p-1.5 hover:bg-forest"
-              >
-                <X size={14} />
-              </button>
-              <p className="absolute bottom-0 inset-x-0 bg-forest/80 text-ivory text-[10px] p-2 truncate">
-                {item.file.name}
-              </p>
-            </article>
-          ))}
-        </div>
       )}
-
-      {files.length > 0 && (
-        <button
-          type="button"
-          onClick={clearFiles}
-          className="text-xs text-muted mt-4 hover:text-forest transition-colors inline-flex items-center gap-1"
-        >
-          <Trash2 size={13} />
-          Clear all reference files
-        </button>
-      )}
-
-      <div className="mt-8 pt-6 border-t border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex gap-2 items-center text-xs text-muted">
-          <ShieldCheck size={16} className="text-bronze shrink-0" />
-          <span>Files never leave this browser device.</span>
-        </div>
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          className="bg-forest/20 text-forest/50 cursor-not-allowed px-5 py-2.5 text-xs font-medium border border-forest/15"
-          title="Virtual try-on model provider is not yet connected"
-        >
-          AI Try-On (Provider Coming Soon)
-        </button>
-      </div>
     </div>
+  );
+}
+
+export function TryOnPanel() {
+  const [person, setPerson] = useState<Photo | null>(null);
+  const [garment, setGarment] = useState<Photo | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const urls = useRef<string[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => {
+    abortRef.current?.abort();
+    urls.current.forEach((url) => URL.revokeObjectURL(url));
+    urls.current = [];
+  }, []);
+
+  function resetPreview() {
+    setPreview(null);
+    setError(null);
+    setConsent(false);
+  }
+
+  async function select(kind: "person" | "garment", file: File) {
+    if (busy) return;
+    resetPreview();
+    try {
+      const photo = await preparePhoto(file);
+      urls.current.push(photo.url);
+      if (kind === "person") {
+        setPerson((previous) => {
+          if (previous) URL.revokeObjectURL(previous.url);
+          return photo;
+        });
+      } else {
+        setGarment((previous) => {
+          if (previous) URL.revokeObjectURL(previous.url);
+          return photo;
+        });
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not prepare the photo.");
+    }
+  }
+
+  function remove(kind: "person" | "garment") {
+    resetPreview();
+    if (kind === "person") {
+      if (person) URL.revokeObjectURL(person.url);
+      setPerson(null);
+    } else {
+      if (garment) URL.revokeObjectURL(garment.url);
+      setGarment(null);
+    }
+  }
+
+  async function generate() {
+    if (!person || !garment || !consent || busy) return;
+    setBusy(true);
+    setError(null);
+    setPreview(null);
+    const abort = new AbortController();
+    abortRef.current = abort;
+    const form = new FormData();
+    form.set("person", person.file);
+    form.set("garment", garment.file);
+    form.set("consent", "true");
+    try {
+      const response = await fetch("/api/try-on", { method: "POST", body: form, cache: "no-store", signal: abort.signal });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(body?.error ?? "Could not generate try-on preview.");
+      }
+      const mime = response.headers.get("content-type") ?? "";
+      if (!["image/png", "image/jpeg"].some((type) => mime.startsWith(type))) throw new Error("The service returned an unexpected result.");
+      const image = await response.blob();
+      if (image.size === 0 || image.size > 4_000_000) throw new Error("The preview could not be displayed.");
+      const url = URL.createObjectURL(image);
+      urls.current.push(url);
+      setPreview(url);
+    } catch (cause) {
+      if (!abort.signal.aborted) setError(cause instanceof Error ? cause.message : "Try-on is temporarily unavailable.");
+    } finally {
+      if (abortRef.current === abort) abortRef.current = null;
+      if (!abort.signal.aborted) setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mt-5 max-w-3xl rounded-2xl border border-line bg-paper p-4 sm:p-6 lg:p-8">
+      <p className="eyebrow text-bronze">Experimental · One garment at a time</p>
+      <h2 className="serif text-3xl md:text-4xl mt-3">See it on you.</h2>
+      <p className="mt-3 text-sm leading-6 text-muted">
+        Add a photo of yourself and a clear photograph of one item of clothing.
+        You can preview the photos here without sending them anywhere.
+      </p>
+
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-6">
+        <PhotoField
+          label="Your photo"
+          helper="Adult, front-facing, head-to-toe works best."
+          photo={person} person
+          onSelect={(file) => { void select("person", file); }}
+          onRemove={() => remove("person")}
+        />
+        <PhotoField
+          label="Garment photo"
+          helper="One shirt, jacket or other clothing item on its own."
+          photo={garment}
+          onSelect={(file) => { void select("garment", file); }}
+          onRemove={() => remove("garment")}
+        />
+      </div>
+
+      <label className="mt-6 flex items-start gap-3 rounded-xl border border-line bg-ivory/40 p-4 text-xs leading-5 text-forest cursor-pointer">
+        <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 accent-forest w-4 h-4 shrink-0" />
+        <span>I am an adult, I have permission to use both photos, and I agree to send them to Google Cloud for this one AI preview when I tap Generate.</span>
+      </label>
+      <div className="mt-4 flex items-start gap-2 text-xs text-muted leading-5">
+        <ShieldCheck size={16} className="text-bronze shrink-0 mt-0.5" />
+        <span>Stylebender does not save the photos or generated image to your wardrobe or account. Google Cloud will process them when you generate. This is a visual suggestion, not a measurement of actual fit.</span>
+      </div>
+
+      <button type="button" disabled={!person || !garment || !consent || busy} onClick={() => void generate()}
+        className="mt-6 w-full min-h-[50px] rounded-xl bg-forest text-ivory px-5 py-3 flex items-center justify-center gap-2 text-sm font-semibold disabled:opacity-45">
+        {busy ? <><Loader2 size={17} className="animate-spin" /> Generating one preview…</> : "Generate virtual try-on"}
+      </button>
+      <p className="text-xs text-muted mt-2">AI image generation is a paid operation and only happens when you press Generate. Availability depends on the configured provider.</p>
+
+      {error && <p role="alert" className="mt-4 flex gap-2 text-sm leading-5 text-amber-900 bg-amber-50 border border-amber-200 p-3 rounded-lg"><AlertCircle size={16} className="shrink-0" /> {error}</p>}
+
+      {preview && (
+        <div className="mt-7 pt-6 border-t border-line">
+          <div className="flex gap-2 items-center"><CheckCircle2 size={18} className="text-bronze" /><h3 className="serif text-2xl">Your virtual preview</h3></div>
+          <p className="text-xs text-muted mt-2">AI-generated illustration. This does not guarantee garment fit, dimensions or exact colour.</p>
+          <div className="mt-4 bg-forest/10 rounded-xl overflow-hidden">
+            <img src={preview} alt="AI-generated virtual try-on preview" className="block w-full h-auto max-h-[640px] object-contain" />
+          </div>
+          <button type="button" className="text-xs text-forest underline underline-offset-4 min-h-11 mt-3" onClick={() => setPreview(null)}>Clear preview</button>
+        </div>
+      )}
+    </section>
   );
 }
