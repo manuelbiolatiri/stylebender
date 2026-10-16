@@ -12,6 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
+import { OccasionVoiceButton } from "@/components/occasion-voice-button";
 import { WardrobePanel } from "@/components/wardrobe-panel";
 import { StyleProfilePanel } from "@/components/style-profile-panel";
 import { VerdictPanel } from "@/components/verdict-panel";
@@ -323,7 +324,13 @@ export default function Home() {
                 placeholder="A dinner date in Manchester on a chilly evening..."
                 className="mobile-occasion-input mt-5 w-full min-h-[144px] resize-none bg-paper border border-line p-4 text-[15px] leading-6 text-ink placeholder:text-muted/70 focus:border-forest focus:outline-none"
               />
-              <button type="button" onClick={() => { const text = "A dinner date in Manchester on a chilly evening, smart casual but not overly formal."; setCustomOccasion(text); setSelected(text); setShowOccasionHint(false); }} className="mt-2 min-h-11 block ml-auto px-1 text-xs text-forest underline decoration-bronze underline-offset-4">Use an example</button>
+              <div className="mt-2 flex items-start justify-between gap-3">
+                <OccasionVoiceButton
+                  value={customOccasion || selected}
+                  onTranscript={(transcript) => { setCustomOccasion(transcript); setSelected(transcript); setShowOccasionHint(false); }}
+                />
+                <button type="button" onClick={() => { const text = "A dinner date in Manchester on a chilly evening, smart casual but not overly formal."; setCustomOccasion(text); setSelected(text); setShowOccasionHint(false); }} className="min-h-11 shrink-0 px-1 text-xs text-forest underline decoration-bronze underline-offset-4">Use an example</button>
+              </div>
               {showOccasionHint && <p id="mobile-occasion-hint" role="status" className="mt-2 text-sm text-forest">Tell us what you are dressing for to begin.</p>}
               <button type="button" onClick={() => startStyling(customOccasion || selected)} className="mt-4 w-full min-h-[50px] bg-forest text-ivory px-5 py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-forest/90 active:bg-forest/95">
                 Style my look <ChevronRight size={17} />
