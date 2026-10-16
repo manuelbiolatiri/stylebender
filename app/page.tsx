@@ -66,11 +66,11 @@ function Nav({
       <header className="hidden lg:flex sticky top-5 z-30 mx-auto mt-5 max-w-5xl h-[72px] rounded-2xl bg-paper/75 backdrop-blur-2xl border border-forest/10 text-forest items-center justify-between px-5 shadow-[0_18px_45px_rgba(20,37,30,0.14)] supports-[backdrop-filter]:bg-paper/60">
         <div className="flex items-center gap-3">
           <img
-            src="/stylebender-mark.png"
+            src="/stylebender-symbol.svg"
             alt="Stylebender"
             className="h-11 w-11 rounded-xl object-cover"
           />
-          <span className="tracking-[.22em] text-[11px] font-semibold">STYLEBENDER</span>
+          <span className="serif text-[25px] tracking-[-.045em] leading-none">Stylebender</span>
         </div>
         <div className="flex items-center gap-8">
           {tabs.map(([label, mobileLabel, I]) => (
@@ -106,8 +106,8 @@ function Nav({
       </header>
       <header className="lg:hidden shrink-0 h-[58px] bg-forest text-ivory flex items-center justify-between px-5 z-30">
         <button type="button" onClick={() => setActive("Discover")} className="flex items-center gap-2" aria-label="Stylebender home">
-          <img src="/stylebender-mark.png" alt="" className="h-8 w-8 rounded-lg object-cover" />
-          <span className="tracking-[.22em] text-[10px] font-semibold">STYLEBENDER</span>
+          <img src="/stylebender-symbol.svg" alt="" className="h-8 w-8 rounded-lg object-cover" />
+          <span className="serif text-[21px] tracking-[-.045em] leading-none">Stylebender</span>
         </button>
         <button
           type="button"
@@ -337,8 +337,8 @@ export default function Home() {
 
               <div className="relative z-10 max-w-2xl hero-reveal">
                 <div className="inline-flex items-center gap-2 px-1 py-1 lg:hidden">
-                  <img src="/stylebender-mark.png" alt="" className="h-7 w-7 rounded-full object-cover" />
-                  <span className="tracking-[.24em] text-[10px] text-ivory font-semibold">STYLEBENDER</span>
+                  <img src="/stylebender-symbol.svg" alt="" className="h-7 w-7 rounded-full object-cover" />
+                  <span className="serif text-[20px] leading-none text-ivory">Stylebender</span>
                 </div>
 
                 <p className="eyebrow text-bronze mt-2 lg:mt-0">The London edit · 2026</p>
