@@ -1,0 +1,4 @@
+interface:
+  display_name: "Stylebender Quality"
+  short_description: "Mobile UX, visual, and outfit QA cycle"
+  default_prompt: "Use $stylebender-quality to run a complete mobile product-quality cycle for this repository."
