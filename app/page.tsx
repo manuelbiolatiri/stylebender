@@ -2,11 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
-  ArrowUpRight,
   Bookmark,
   ChevronRight,
   Compass,
-  Plus,
   Shirt,
   Sparkles,
   UserRound,
@@ -20,28 +18,10 @@ import { AchievePanel } from "@/components/achieve-panel";
 import { ElevatePanel } from "@/components/elevate-panel";
 import { TryOnPanel } from "@/components/try-on-panel";
 import { StyleIQPanel } from "@/components/style-iq-panel";
-import { HeroMotion } from "@/components/hero-motion";
 import { defaultOutfitContext, readCurrentOutfit, type OutfitContext } from "@/lib/outfit";
 import { getWardrobeMetadata } from "@/lib/wardrobe";
 import { SavedPanel } from "@/components/saved-panel";
 import { getSampleWardrobeContext, hasSelectedSampleWeather, readSelectedSampleWeather } from "@/lib/sample-wardrobes";
-
-const occasions = [
-  ["Church", "Polished, expressive and considered", "/sunday-menswear-editorial.jpg"],
-  ["Office Day", "Sharp layers for the working week", "/london-menswear-editorial.jpg"],
-  ["Date Night", "A little more intent, never overdone", "/evening-menswear-editorial.jpg"],
-] as const;
-
-const tips = [
-  [
-    "The quiet flex",
-    "Texture does the talking. Pair a brushed knit with clean tailoring for depth without noise.",
-  ],
-  [
-    "Colour note",
-    "Forest green and warm stone make an easy, elevated pairing.",
-  ],
-];
 
 function Nav({
   active,
@@ -144,9 +124,7 @@ export default function Home() {
   const [tryOnWardrobeId, setTryOnWardrobeId] = useState<string | null>(null);
   const [selected, setSelectedState] = useState("");
   const [customOccasion, setCustomOccasion] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [autoGenerateVerdict, setAutoGenerateVerdict] = useState(false);
-  const [dna, setDna] = useState(false);
   const [profileContext, setProfileContext] = useState<OutfitContext>(defaultOutfitContext);
   const [sessionEmail, setSessionEmail] = useState<string | undefined>();
   const screenRef = useRef<HTMLDivElement>(null);
@@ -343,7 +321,7 @@ export default function Home() {
               </div>
             </section>
 
-            <section className="hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[520px] sm:min-h-[560px] md:min-h-[700px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-6 md:px-12 lg:px-20 lg:pt-24 max-w-[1600px] mx-auto pb-10 lg:pb-16 hidden lg:block">
+            <section className="desktop-home-hero hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[520px] sm:min-h-[560px] md:min-h-[700px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-6 md:px-12 lg:px-20 lg:pt-24 max-w-[1600px] mx-auto pb-10 lg:pb-16 hidden lg:block">
               <Image
                 src="/stylebender-hero-campaign.jpg"
                 alt="Model in a forest green tailored jacket"
@@ -353,7 +331,6 @@ export default function Home() {
                 className="hero-image absolute inset-0 object-cover object-[62%_center]"
               />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,37,30,.98)_0%,rgba(20,37,30,.85)_35%,rgba(20,37,30,.3)_75%,rgba(20,37,30,.15)_100%)]" />
-              <HeroMotion />
 
               <div className="relative z-10 max-w-2xl hero-reveal">
                 <div className="inline-flex items-center gap-2 px-1 py-1 lg:hidden">
@@ -364,221 +341,49 @@ export default function Home() {
                 <p className="eyebrow text-bronze mt-2 lg:mt-0">The London edit · 2026</p>
 
                 <h1 className="display text-5xl sm:text-6xl md:text-7xl lg:text-[6.5rem] leading-[.9] mt-4 max-w-3xl">
-                  Discover your style.
+                  A look for every occasion.
                   <br />
                   <span className="text-ivory/55">Make it yours.</span>
                 </h1>
 
                 <p className="text-ivory/80 mt-5 max-w-lg leading-6 md:leading-7 text-sm md:text-base">
-                  AI personal stylist for luxury-inspired menswear. Tell Stylebender what you&rsquo;re dressing for to get an instant, considered outfit recommendation.
+                  Describe your occasion, discover a considered outfit, and refine it until it feels like yours.
                 </p>
 
-                {/* Occasion Selection - Compact & Mobile Friendly */}
-                <div className="mt-7">
-                  <p className="text-xs uppercase tracking-wider text-bronze font-medium mb-3">
-                    Select an occasion or enter your own
-                  </p>
-
-                  <div className="grid grid-cols-3 gap-2 max-w-3xl">
-                    {occasions.map(([name, desc, image]) => {
-                      const isChosen = selected === name;
-                      return (
-                        <button
-                          key={name}
-                          type="button"
-                          onClick={() => {
-                            setSelected(name);
-                            setShowCustomInput(false);
-                          }}
-                          className={
-                            "group relative overflow-hidden text-left p-4 border transition-all " +
-                            (isChosen
-                              ? "bg-ivory text-forest border-ivory ring-2 ring-bronze shadow-lg"
-                              : "bg-paper/10 text-ivory border-ivory/20 hover:border-bronze hover:bg-paper/20")
-                          }
-                        >
-                          <Image
-                            src={image}
-                            alt=""
-                            fill
-                            sizes="(max-width: 640px) 100vw, 33vw"
-                            className="absolute inset-0 object-cover opacity-45 group-hover:scale-105 transition duration-700"
-                          />
-                          <span className="absolute inset-0 bg-gradient-to-t from-forest/95 via-forest/40 to-transparent" />
-                          <div className="relative z-10 flex justify-between items-start">
-                            <span className="serif text-base sm:text-2xl">{name}</span>
-                            <ArrowUpRight size={16} />
-                          </div>
-                          <p
-                            className={
-                              "relative z-10 text-[11px] mt-4 leading-4 line-clamp-2 " +
-                              (isChosen ? "text-forest/75 font-medium" : "text-ivory/70")
-                            }
-                          >
-                            {desc}
-                          </p>
-                        </button>
-                      );
-                    })}
+                {/* Same occasion-first journey as mobile, with desktop editorial presentation. */}
+                <div className="desktop-occasion-form mt-8 max-w-[550px] rounded-2xl border border-ivory/20 bg-forest/90 p-5 shadow-2xl backdrop-blur-md xl:p-6">
+                  <label htmlFor="desktop-occasion" className="block text-sm font-semibold text-ivory">What are you dressing for?</label>
+                  <textarea id="desktop-occasion" rows={3} value={customOccasion || selected}
+                    onChange={(event) => {
+                      setCustomOccasion(event.target.value);
+                      setSelected(event.target.value);
+                      if (event.target.value.trim()) setShowOccasionHint(false);
+                    }}
+                    aria-describedby={showOccasionHint ? "desktop-occasion-hint" : undefined}
+                    placeholder="A dinner date in Manchester on a chilly evening..."
+                    className="mt-3 block min-h-[116px] w-full resize-y rounded-xl border border-ivory/30 bg-paper px-4 py-3 text-[15px] leading-6 text-ink placeholder:text-muted/70 focus:border-bronze focus:outline-none" />
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <OccasionVoiceButton value={customOccasion || selected}
+                      onTranscript={(text) => { setCustomOccasion(text); setSelected(text); setShowOccasionHint(false); }} />
+                    <button type="button" onClick={() => {
+                      const example = "A dinner date in Manchester on a chilly evening, smart casual but not overly formal.";
+                      setCustomOccasion(example); setSelected(example); setShowOccasionHint(false);
+                    }} className="min-h-11 text-xs text-ivory underline decoration-bronze underline-offset-4">Use an example</button>
                   </div>
-
-                  {/* Custom Occasion Toggle / Input */}
-                  <div className="mt-3 max-w-3xl">
-                    {!showCustomInput ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowCustomInput(true)}
-                        className="text-xs text-ivory/80 hover:text-ivory underline underline-offset-4 inline-flex items-center gap-1.5 py-1"
-                      >
-                        <Plus size={14} />
-                        Or enter a custom occasion (e.g. Gallery opening, Wedding in Como)
-                      </button>
-                    ) : (
-                      <div className="flex gap-2 items-center bg-paper/15 backdrop-blur-md border border-ivory/30 p-2 max-w-md">
-                        <input
-                          type="text"
-                          value={customOccasion}
-                          onChange={(e) => {
-                            setCustomOccasion(e.target.value);
-                            setSelected(e.target.value);
-                          }}
-                          placeholder="e.g. Summer wedding in Tuscany"
-                          aria-label="Custom occasion"
-                          className="bg-transparent text-xs text-ivory placeholder:text-ivory/50 px-2 py-1 flex-1 focus:outline-none"
-                          autoFocus
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (customOccasion.trim()) {
-                              setSelected(customOccasion.trim());
-                            }
-                          }}
-                          className="bg-ivory text-forest text-xs font-medium px-3 py-1.5"
-                        >
-                          Select
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Primary CTA Button */}
-                <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
-                  <button
-                    onClick={() => startStyling(selected)}
-                    disabled={!selected.trim()}
-                    aria-label={`Get one strong look · Style me for ${selected || "an occasion"}`}
-                    className="w-full sm:w-auto bg-ivory text-forest px-7 py-4 text-sm font-semibold shadow-xl hover:bg-ivory/95 transition-all flex items-center justify-center gap-2 group disabled:cursor-not-allowed disabled:opacity-45"
-                  >
-                    <span>{selected ? `Style me for ${selected}` : "Style me for an occasion"}</span>
-                    <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  {showOccasionHint && <p id="desktop-occasion-hint" role="status" className="mt-2 text-sm text-ivory">Tell us what you are dressing for to begin.</p>}
+                  <button type="button" onClick={() => startStyling(customOccasion || selected)}
+                    className="mt-4 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-ivory px-5 py-3 text-sm font-semibold text-forest hover:bg-white">
+                    Style my look <ChevronRight size={18} />
                   </button>
-
-                  {!selected && (
-                    <span className="text-xs text-ivory/60 text-center sm:text-left">
-                      Tap Church, Office Day, Date Night or enter your own
-                    </span>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            {/* Secondary Occasion & Daily Edit Section */}
-            <section className="hidden lg:grid mt-14 lg:mt-24 max-w-[1500px] mx-auto grid-cols-2 lg:grid-cols-[1.2fr_.8fr] gap-5 px-6 md:px-10 lg:px-20">
-              <div className="relative min-h-[380px] overflow-hidden bg-forest grain">
-                <Image
-                  src="/menswear-outfit-flatlay.jpg"
-                  alt="Forest tailoring and charcoal trousers laid out together"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                  className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-screen"
-                />
-                <div className="relative p-7 lg:p-10 h-full flex flex-col justify-end text-ivory">
-                  <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
-                    Your next move
-                  </p>
-                  <h2 className="serif text-3xl md:text-4xl mt-3">
-                    Style me for
-                    <br />
-                    {selected || "an occasion"}
-                  </h2>
-                  <button
-                    onClick={() => startStyling(selected)}
-                    disabled={!selected.trim()}
-                    className="mt-6 bg-ivory text-forest px-6 py-3 text-xs tracking-wide font-medium w-fit hover:bg-ivory/90 transition-colors inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-45"
-                  >
-                    <span>Style me</span>
-                    <ChevronRight size={15} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-paper border border-line p-7 lg:p-10 flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-center">
-                    <span className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
-                      The daily edit
-                    </span>
-                    <Sparkles size={17} className="text-bronze" />
-                  </div>
-                  <h2 className="serif text-3xl mt-6">{tips[0][0]}</h2>
-                  <p className="text-muted leading-7 mt-4 text-sm md:text-base">{tips[0][1]}</p>
-                </div>
-                <button
-                  onClick={() => setActive("Style IQ")}
-                  className="text-left border-t border-line pt-5 mt-8 text-xs tracking-wide text-forest hover:text-bronze transition-colors flex items-center justify-between"
-                >
-                  <span>Explore Style IQ</span>
-                  <ArrowUpRight size={15} />
-                </button>
-              </div>
-            </section>
-
-            {/* Optional Style DNA Section */}
-            <section className="hidden lg:block px-6 lg:px-20 py-16 max-w-[1500px] mx-auto">
-              <div className="flex justify-between items-end">
-                <div>
-                  <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
-                    Made personal
-                  </p>
-                  <h2 className="serif text-3xl md:text-4xl mt-2">Your Style DNA</h2>
-                </div>
-                <button
-                  onClick={() => setDna(!dna)}
-                  className="text-xs border-b border-forest pb-0.5 text-forest hover:text-bronze transition-colors"
-                >
-                  {dna ? "Close" : "Review assumptions"}
-                </button>
-              </div>
-
-              {dna && (
-                <div className="mt-6 bg-paper border border-line p-6 max-w-2xl">
-                  <p className="text-sm leading-6 text-muted">
-                    A default profile is configured: tailored elegance, quiet luxury and smart casual.
-                    This is completely optional and never blocks you from generating a recommendation.
-                  </p>
-                  <div className="flex gap-3 mt-5">
-                    <button
-                      className="bg-forest text-ivory px-4 py-2 text-xs font-medium hover:bg-forest/90 transition-colors"
-                      onClick={() => setDna(false)}
-                    >
-                      Confirm profile
-                    </button>
-                    <button
-                      className="border border-line px-4 py-2 text-xs text-muted hover:text-forest transition-colors"
-                      onClick={() => {
-                        setDna(false);
-                        setActive("Profile");
-                      }}
-                    >
-                      Edit preferences
-                    </button>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ivory/20 pt-3 text-xs text-ivory/75">
+                    <span className="inline-flex items-center gap-2"><Shirt size={16} className="text-bronze" /> {wardrobeContextLabel}</span>
+                    <button onClick={() => setActive("Wardrobe")} className="inline-flex min-h-11 items-center gap-1 text-ivory hover:text-bronze">Wardrobe <ChevronRight size={14} /></button>
                   </div>
                 </div>
-              )}
+                              </div>
             </section>
-          </main>
+
+            </main>
           ) : (
           <Placeholder
             active={active}
@@ -625,7 +430,7 @@ function Placeholder({
   onAutoGenerateConsumed: () => void;
 }) {
   return (
-    <main className="mobile-panel w-full min-w-0 px-5 lg:px-20 pt-6 lg:pt-16 max-w-6xl">
+    <main className="mobile-panel w-full min-w-0 px-5 lg:px-12 xl:px-16 pt-6 lg:pt-12 max-w-[1320px] mx-auto">
       {(active === "Style Me" || active === "Elevate" || active === "Try On") && (
         <button type="button"
           onClick={() => setActive(active === "Style Me" ? "Discover" : "Style Me")}

@@ -227,7 +227,7 @@ export function VerdictPanel({
   }
 
   return (
-    <div className="verdict-panel mt-8 grid w-full min-w-0 lg:grid-cols-[1.1fr_.9fr] gap-6 max-w-5xl">
+    <div className="verdict-panel mt-8 grid w-full min-w-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(290px,.6fr)] gap-5 xl:gap-7 max-w-[1200px]">
       {/* Left Column: Verdict Hero Card */}
       <div className="min-w-0 w-full bg-forest text-ivory min-h-[460px] p-7 lg:p-10 flex flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">
@@ -361,7 +361,7 @@ export function VerdictPanel({
             </p>
           )}
 
-          <div className="verdict-choice-row flex flex-wrap gap-2">
+          <div className="verdict-choice-row hidden">
             {(["Wear", "Change One Piece", "Elevate", "Skip"] as const).map((choice) => (
               <button
                 key={choice}
@@ -378,7 +378,7 @@ export function VerdictPanel({
               </button>
             ))}
           </div>
-          <div className="mobile-verdict-actions lg:hidden mt-4 grid grid-cols-2 gap-2">
+          <div className="mobile-verdict-actions mt-4 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleVerdictChoice("Change One Piece")}
@@ -409,7 +409,7 @@ export function VerdictPanel({
             className="lg:hidden mt-2 min-h-11 w-full text-ivory/80 text-xs underline decoration-bronze underline-offset-4 disabled:opacity-50">
             Try on one garment (experimental)
           </button>
-          <details className="mobile-rationale lg:hidden mt-4 border-t border-ivory/20 pt-3 text-xs text-ivory/75">
+          <details className="mobile-rationale mt-4 border-t border-ivory/20 pt-3 text-xs text-ivory/75">
             <summary className="cursor-pointer text-ivory">Why this works</summary>
             <div className="mt-3 space-y-2">
               {(result?.reasons ?? []).map((reason, idx) => <p key={idx}>{reason}</p>)}
@@ -441,65 +441,10 @@ export function VerdictPanel({
           </div>
 
           {result && (
-            <div className="border-t border-line mt-8 pt-6">
-              <div className="flex justify-between items-center mb-4">
-                <p className="uppercase tracking-[.25em] text-[10px] text-bronze font-medium">
-                  Recommended garments
-                </p>
-                <span className="text-xs text-muted">
-                  {result.pieces.filter((p) => p.owned).length}/{result.pieces.length} from wardrobe
-                </span>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-3">
-                {result.pieces.map((piece) => {
-                  const resolved = resolvedImages[piece.name];
-                  const imgSrc = resolved?.url ?? piece.product?.image;
-                  const isUserImage = resolved?.isUser;
-
-                  return (
-                    <button
-                      key={piece.name}
-                      type="button"
-                      onClick={() => {
-                        setSwapPieceName(piece.name);
-                        setVerdict("Change One Piece");
-                      }}
-                      aria-label={`Change ${piece.name}`}
-                      className="flex min-w-0 w-full gap-3 items-center border border-line p-2.5 bg-ivory/30 hover:border-bronze transition-colors"
-                    >
-                      <div className="relative w-14 h-14 shrink-0 overflow-hidden bg-forest/5 border border-line">
-                        {imgSrc ? (
-                            <img src={getReviewedGarmentImage(piece.name, imgSrc)} alt={piece.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div role="img" aria-label={`No image available for ${piece.name}`} className="w-full h-full flex items-center justify-center text-forest/40">
-                            <Shirt size={20} />
-                          </div>
-                        )}
-                        {isUserImage && (
-                          <span className="absolute bottom-0 inset-x-0 bg-forest/85 text-[8px] text-ivory text-center py-0.5 font-medium">
-                            Your photo
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium truncate text-forest" title={piece.name}>
-                          {piece.name}
-                        </p>
-                        <p className="text-[10px] text-muted mt-0.5">
-                          {piece.owned ? "From your wardrobe" : "Catalog reference · not a live listing"}
-                        </p>
-                        {piece.note && (
-                          <p className="text-[10px] text-bronze mt-1 truncate" title={piece.note}>
-                            {piece.note}
-                          </p>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="mt-8 border-t border-line pt-6">
+              <p className="text-xs font-semibold uppercase tracking-wider text-bronze">Outfit notes</p>
+              <p className="mt-3 text-sm leading-6 text-muted">{result.pieces.length} coordinated garments. Select a piece in the main look to make a change.</p>
+              <p className="mt-3 text-xs text-forest/75">{result.pieces.filter((piece) => piece.owned).length} from your wardrobe. Other items are styling references, not retailer listings.</p>
             </div>
           )}
         </div>
@@ -512,14 +457,6 @@ export function VerdictPanel({
             className="text-xs border border-line px-3.5 py-2.5 hover:border-forest transition-colors disabled:opacity-40"
           >
             Achieve this look <ArrowUpRight className="inline ml-1" size={14} />
-          </button>
-
-          <button
-            disabled={!result}
-            onClick={() => onAction("Elevate")}
-            className="text-xs border border-line px-3.5 py-2.5 hover:border-forest transition-colors disabled:opacity-40"
-          >
-            Elevate <ArrowUpRight className="inline ml-1" size={14} />
           </button>
 
           <button
@@ -537,19 +474,6 @@ export function VerdictPanel({
             {showShop ? "Close shopping" : "Shop this look"} <ArrowUpRight className="inline ml-1" size={14} />
           </button>
 
-          <button
-            onClick={toggleSave}
-            disabled={!result || status === "error"}
-            className={
-              "text-xs px-4 py-2.5 font-medium transition-colors ml-auto flex items-center gap-1.5 " +
-              (saved
-                ? "bg-bronze text-ivory"
-                : "bg-forest text-ivory hover:bg-forest/90 disabled:opacity-40")
-            }
-          >
-            <Bookmark className="inline" size={14} fill={saved ? "currentColor" : "none"} />
-            {saved ? "Saved" : "Save"}
-          </button>
         </div>
 
         {showShop && result && (
