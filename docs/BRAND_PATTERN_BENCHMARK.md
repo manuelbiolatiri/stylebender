@@ -50,3 +50,24 @@ Stylebender is specifically a **private, UK menswear, occasion-led stylist** wit
 ## Outcome record
 
 This document does not claim that Stylebender screens were rendered or that tests passed on this date. It records reference research and a scoped design/QA plan only.
+
+## Desktop reference application, 17 October 2026
+
+The desktop iteration originally failed the reference → adapt → verify loop: an oversized
+fashion-campaign headline buried the styling form below the fold. This does not reflect
+Alta's occasion-first proposition or Whering's utility-first product approach.
+
+For the next desktop-only iteration (PR branch `feat/alta-informed-desktop-home`):
+- **Alta**: make occasion entry, a single clear action and wardrobe context immediately visible.
+  Source: https://www.styledbyalta.com/ (public site; no claims about signed-in app UI).
+- **Whering**: treat the product's wardrobe/output as its core function, rather than selling
+  atmosphere alone. Source: https://whering.co.uk/how-it-works
+- **MR PORTER**: retain refined typography and menswear photography in a bounded editorial
+  panel, rather than a full-bleed photograph eclipsing the product action.
+  Source: https://www.mrporter.com/en-gb/hub/what-to-wear/
+
+The resulting desktop home is an original split composition: ivory occasion workspace,
+forest CTA and a separate editorial image, using Stylebender brand tokens and imagery.
+Tablet and mobile designs remain as previously approved. The desktop 1440×900 browser
+test must prove `Style my look` is visible **without scrolling**. Screenshots must be
+manually compared before treating visual quality as approved.

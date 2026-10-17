@@ -63,3 +63,19 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 768
     await page.screenshot({ path: `test-results/responsive/saved-${viewport.width}.png`, fullPage: true });
   });
 }
+
+test('desktop styling action is in the first viewport without scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?view=Discover');
+  const action = page.getByRole('button', { name: /Style my look/i });
+  await expect(action).toBeVisible();
+  const layout = await action.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return { top: rect.top, bottom: rect.bottom, viewport: window.innerHeight };
+  });
+  expect(layout.top).toBeGreaterThan(0);
+  expect(layout.bottom).toBeLessThanOrEqual(layout.viewport - 12);
+  const hero = page.locator('.desktop-editorial-visual');
+  await expect(hero).toBeVisible();
+  await page.screenshot({ path: 'test-results/responsive/desktop-1440-first-viewport.png', fullPage: false });
+});

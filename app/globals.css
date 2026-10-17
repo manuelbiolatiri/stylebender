@@ -228,8 +228,10 @@ a:focus-visible {
   .saved-panel article { min-width: 0; }
 }
 @media (min-width: 1024px) {
-  .desktop-home-hero { min-height: min(850px, calc(100vh - 140px)); }
-  .desktop-home-hero .hero-reveal { max-width: 730px; }
+  .desktop-home-hero { min-height: min(740px, calc(100dvh - 125px)); }
+  .desktop-workspace-title { font-size: clamp(2.7rem, 4vw, 4.25rem); line-height: 1.015; letter-spacing: -.05em; }
+  .desktop-editorial-visual { min-height: 600px; }
+  .desktop-occasion-form textarea { scroll-margin-block: 80px; }
   .verdict-panel .mobile-verdict-actions { max-width: 550px; }
   .verdict-panel .mobile-look-grid { max-width: 680px; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   .verdict-panel .garment-name { font-size: 13px; }
@@ -237,4 +239,11 @@ a:focus-visible {
   .verdict-panel .verdict-secondary { align-self: start; border-radius: 18px; }
   .saved-panel, .wardrobe-panel { max-width: 1200px; }
   .wardrobe-explore-grid { gap: 16px; }
+}
+
+@media (min-width: 1024px) and (max-height: 800px) {
+  .desktop-workspace { padding-top: 20px; padding-bottom: 16px; }
+  .desktop-workspace-title { font-size: clamp(2.4rem, 3.45vw, 3.4rem); }
+  .desktop-occasion-form { margin-top: 16px; }
+  .desktop-editorial-visual { min-height: 560px; }
 }
