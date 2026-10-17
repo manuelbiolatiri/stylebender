@@ -27,7 +27,7 @@ const filterOptions = ["All", ...categories];
 
 type Preview = WardrobeItem & { url: string };
 
-export function WardrobePanel() {
+export function WardrobePanel({ onTryOn }: { onTryOn?: (wardrobeId: string) => void }) {
   const [items, setItems] = useState<Preview[]>([]);
   const [activeFilter, setActiveFilter] = useState("All");
   const [uploadCategory, setUploadCategory] = useState("Tops");
@@ -510,7 +510,7 @@ export function WardrobePanel() {
                   )}
                 </div>
               </div>
-              <div className="p-3 pt-0 border-t border-line/60 flex items-center justify-between">
+              <div className="p-3 pt-0 border-t border-line/60 flex items-center justify-between gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => startEdit(item)}
@@ -520,6 +520,12 @@ export function WardrobePanel() {
                   <Edit3 size={13} />
                   <span>Edit</span>
                 </button>
+                {onTryOn && (
+                  <button type="button" onClick={() => onTryOn(item.id)} aria-label={"Try on " + item.name}
+                    className="inline-flex items-center gap-1 text-[11px] text-forest hover:text-bronze py-1">
+                    <Camera size={13} /> Try on
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => remove(item.id, item.name)}
