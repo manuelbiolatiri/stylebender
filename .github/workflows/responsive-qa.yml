@@ -31,11 +31,11 @@ jobs:
       - run: yarn build
       - run: yarn playwright install --with-deps chromium
       - run: yarn playwright test tests/e2e/responsive-parity.spec.ts --project=chromium
-      - name: Store viewport screenshots on failure
-        if: failure()
+      - name: Store deterministic responsive screenshots
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: responsive-debug
+          name: responsive-evidence
           path: |
             test-results/
             playwright-report/
