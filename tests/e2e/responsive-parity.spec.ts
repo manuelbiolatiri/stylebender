@@ -5,7 +5,8 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 768
     await page.setViewportSize(viewport);
     await page.goto('/?view=Discover');
     await expect(page.getByRole('heading', { name: /What are you dressing for|A look for every occasion/i })).toBeVisible();
-    const input = page.getByPlaceholder('A dinner date in Manchester on a chilly evening...');
+    // Both responsive variants exist in the DOM. Select the actively displayed form.
+    const input = page.locator(viewport.width < 1024 ? '#mobile-occasion' : '#desktop-occasion');
     await expect(input).toBeVisible();
     await input.fill('A relaxed dinner in Manchester');
     await expect(page.getByRole('button', { name: /Style my look/i })).toBeVisible();
