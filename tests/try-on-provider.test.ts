@@ -2,10 +2,9 @@ import { describe, expect, it } from "vitest";
 import { providerErrorMessage, VIRTUAL_TRYON_PARAMETERS } from "../lib/try-on-provider";
 
 describe("Google virtual try-on request configuration", () => {
-  it("uses the documented adult-generation enum and a single output", () => {
-    expect(VIRTUAL_TRYON_PARAMETERS.personGeneration).toBe("allow-adult");
+  it("uses the provider-supported single-output configuration", () => {
     expect(VIRTUAL_TRYON_PARAMETERS.sampleCount).toBe(1);
-    expect(VIRTUAL_TRYON_PARAMETERS.outputOptions.mimeType).toBe("image/jpeg");
+    expect(Object.keys(VIRTUAL_TRYON_PARAMETERS)).toEqual(["sampleCount"]);
   });
 
   it("returns useful safe HTTP diagnostics without exposing provider response bodies", () => {

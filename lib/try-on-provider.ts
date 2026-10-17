@@ -5,10 +5,6 @@
  */
 export const VIRTUAL_TRYON_PARAMETERS = {
   sampleCount: 1,
-  addWatermark: true,
-  // Google's current REST enum is hyphenated, not "allow_adult".
-  personGeneration: "allow-adult",
-  outputOptions: { mimeType: "image/jpeg", compressionQuality: 82 },
 } as const;
 
 export function providerErrorMessage(status: number): string {

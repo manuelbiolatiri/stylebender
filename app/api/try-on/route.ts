@@ -97,7 +97,6 @@ export async function POST(request: Request) {
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         instances: [{
-          prompt: "Show this consenting adult wearing the provided garment. Preserve face, pose, garment colour and details. This is a visual preview, not an exact fit measurement.",
           personImage: { image: person },
           productImages: [{ image: garment }],
         }],
