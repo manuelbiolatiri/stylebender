@@ -85,7 +85,7 @@ export function SavedPanel({ onOpen }: { onOpen: (item: OutfitVersion) => void }
           </p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="saved-looks-grid grid md:grid-cols-2 gap-5">
           {visible.map((item) => (
             <article
               key={item.id}

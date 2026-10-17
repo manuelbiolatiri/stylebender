@@ -224,7 +224,7 @@ a:focus-visible {
   .mobile-home-context { max-width: 720px; }
   .mobile-look-grid { max-width: 730px; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   .wardrobe-explore-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-  .saved-panel > div:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .saved-panel .saved-looks-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
   .saved-panel article { min-width: 0; }
 }
 @media (min-width: 1024px) {

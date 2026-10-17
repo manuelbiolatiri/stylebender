@@ -409,7 +409,7 @@ export function VerdictPanel({
             className="lg:hidden mt-2 min-h-11 w-full text-ivory/80 text-xs underline decoration-bronze underline-offset-4 disabled:opacity-50">
             Try on one garment (experimental)
           </button>
-          <details className="mobile-rationale mt-4 border-t border-ivory/20 pt-3 text-xs text-ivory/75">
+          <details className="mobile-rationale lg:hidden mt-4 border-t border-ivory/20 pt-3 text-xs text-ivory/75">
             <summary className="cursor-pointer text-ivory">Why this works</summary>
             <div className="mt-3 space-y-2">
               {(result?.reasons ?? []).map((reason, idx) => <p key={idx}>{reason}</p>)}
