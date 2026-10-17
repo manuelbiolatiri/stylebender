@@ -44,7 +44,7 @@ function Nav({
 
   return (
     <>
-      <header className="hidden lg:flex sticky top-5 z-30 mx-auto mt-5 max-w-5xl h-[72px] rounded-2xl bg-paper/75 backdrop-blur-2xl border border-forest/10 text-forest items-center justify-between px-5 shadow-[0_18px_45px_rgba(20,37,30,0.14)] supports-[backdrop-filter]:bg-paper/60">
+      <header className="hidden lg:flex sticky top-3 z-30 mx-auto mt-3 max-w-[1440px] min-h-[72px] rounded-2xl bg-paper/95 backdrop-blur-xl border border-forest/10 text-forest items-center justify-between gap-3 px-5 xl:px-8 shadow-[0_12px_34px_rgba(20,37,30,0.09)]">
         <div className="flex items-center gap-3">
           <img
             src="/stylebender-symbol.svg"
@@ -53,7 +53,7 @@ function Nav({
           />
           <span className="serif text-[25px] tracking-[-.045em] leading-none">Stylebender</span>
         </div>
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-3 xl:gap-5">
           {tabs.map(([label, mobileLabel, I]) => (
             <button
               key={label}
@@ -61,8 +61,8 @@ function Nav({
               onClick={() => setActive(label)}
               className={
                 active === label
-                  ? "text-bronze font-medium"
-                  : "text-muted hover:text-forest transition-colors"
+                  ? "text-forest font-semibold border-b-2 border-bronze"
+                  : "text-forest/75 hover:text-forest transition-colors"
               }
             >
               <I size={16} className="inline mr-2" />
@@ -321,38 +321,19 @@ export default function Home() {
               </div>
             </section>
 
-            <section className="desktop-home-hero hero-shell relative overflow-hidden mt-0 lg:mt-5 min-h-[520px] sm:min-h-[560px] md:min-h-[700px] rounded-b-[2rem] lg:rounded-none bg-forest text-ivory px-6 pt-6 md:px-12 lg:px-20 lg:pt-24 max-w-[1600px] mx-auto pb-10 lg:pb-16 hidden lg:block">
-              <Image
-                src="/stylebender-hero-campaign.jpg"
-                alt="Model in a forest green tailored jacket"
-                fill
-                priority
-                sizes="100vw"
-                className="hero-image absolute inset-0 object-cover object-[62%_center]"
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,37,30,.98)_0%,rgba(20,37,30,.85)_35%,rgba(20,37,30,.3)_75%,rgba(20,37,30,.15)_100%)]" />
-
-              <div className="relative z-10 max-w-2xl hero-reveal">
-                <div className="inline-flex items-center gap-2 px-1 py-1 lg:hidden">
-                  <img src="/stylebender-symbol.svg" alt="" className="h-7 w-7 rounded-full object-cover" />
-                  <span className="serif text-[20px] leading-none text-ivory">Stylebender</span>
-                </div>
-
-                <p className="eyebrow text-bronze mt-2 lg:mt-0">The London edit · 2026</p>
-
-                <h1 className="display text-5xl sm:text-6xl md:text-7xl lg:text-[6.5rem] leading-[.9] mt-4 max-w-3xl">
-                  A look for every occasion.
-                  <br />
-                  <span className="text-ivory/55">Make it yours.</span>
+            <section className="desktop-home-hero hidden lg:grid mx-auto mt-5 w-full max-w-[1480px] overflow-hidden border border-line bg-paper lg:grid-cols-[minmax(0,1.06fr)_minmax(0,.94fr)]" aria-label="Get styled for your occasion">
+              <div className="desktop-workspace relative z-10 flex min-w-0 flex-col justify-center px-9 py-8 xl:px-16 xl:py-12">
+                <p className="eyebrow font-semibold text-bronze">YOUR PERSONAL MENSWEAR STYLIST</p>
+                <h1 className="display desktop-workspace-title mt-4 max-w-[640px] text-forest">
+                  A considered look.
+                  <span className="block text-forest/60">Made for your moment.</span>
                 </h1>
-
-                <p className="text-ivory/80 mt-5 max-w-lg leading-6 md:leading-7 text-sm md:text-base">
-                  Describe your occasion, discover a considered outfit, and refine it until it feels like yours.
+                <p className="mt-4 max-w-[520px] text-[15px] leading-6 text-ink/75">
+                  Tell us where you&rsquo;re going. We&rsquo;ll build a complete outfit around the occasion, with your wardrobe in mind.
                 </p>
 
-                {/* Same occasion-first journey as mobile, with desktop editorial presentation. */}
-                <div className="desktop-occasion-form mt-8 max-w-[550px] rounded-2xl border border-ivory/20 bg-forest/90 p-5 shadow-2xl backdrop-blur-md xl:p-6">
-                  <label htmlFor="desktop-occasion" className="block text-sm font-semibold text-ivory">What are you dressing for?</label>
+                <div className="desktop-occasion-form mt-7 max-w-[600px] rounded-2xl border border-line bg-ivory p-4 shadow-[0_8px_28px_rgba(20,37,30,.055)] xl:p-5">
+                  <label htmlFor="desktop-occasion" className="block text-sm font-semibold text-forest">What are you dressing for?</label>
                   <textarea id="desktop-occasion" rows={3} value={customOccasion || selected}
                     onChange={(event) => {
                       setCustomOccasion(event.target.value);
@@ -361,26 +342,41 @@ export default function Home() {
                     }}
                     aria-describedby={showOccasionHint ? "desktop-occasion-hint" : undefined}
                     placeholder="A dinner date in Manchester on a chilly evening..."
-                    className="mt-3 block min-h-[116px] w-full resize-y rounded-xl border border-ivory/30 bg-paper px-4 py-3 text-[15px] leading-6 text-ink placeholder:text-muted/70 focus:border-bronze focus:outline-none" />
-                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    className="mt-2 block min-h-[92px] w-full resize-y rounded-xl border border-line bg-paper px-4 py-3 text-[15px] leading-6 text-ink placeholder:text-muted/70 focus:border-forest focus:outline-none focus:ring-2 focus:ring-bronze/20" />
+                  <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
                     <OccasionVoiceButton value={customOccasion || selected}
                       onTranscript={(text) => { setCustomOccasion(text); setSelected(text); setShowOccasionHint(false); }} />
                     <button type="button" onClick={() => {
                       const example = "A dinner date in Manchester on a chilly evening, smart casual but not overly formal.";
                       setCustomOccasion(example); setSelected(example); setShowOccasionHint(false);
-                    }} className="min-h-11 text-xs text-ivory underline decoration-bronze underline-offset-4">Use an example</button>
+                    }} className="min-h-11 text-xs font-medium text-forest underline decoration-bronze underline-offset-4 hover:text-bronze">Use an example</button>
                   </div>
-                  {showOccasionHint && <p id="desktop-occasion-hint" role="status" className="mt-2 text-sm text-ivory">Tell us what you are dressing for to begin.</p>}
+                  {showOccasionHint && <p id="desktop-occasion-hint" role="status" className="mt-1 text-sm text-forest">Tell us what you are dressing for to begin.</p>}
                   <button type="button" onClick={() => startStyling(customOccasion || selected)}
-                    className="mt-4 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-ivory px-5 py-3 text-sm font-semibold text-forest hover:bg-white">
-                    Style my look <ChevronRight size={18} />
+                    className="mt-2 inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-forest px-5 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-forest/90">
+                    Style my look <ChevronRight size={18} aria-hidden="true" />
                   </button>
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ivory/20 pt-3 text-xs text-ivory/75">
-                    <span className="inline-flex items-center gap-2"><Shirt size={16} className="text-bronze" /> {wardrobeContextLabel}</span>
-                    <button onClick={() => setActive("Wardrobe")} className="inline-flex min-h-11 items-center gap-1 text-ivory hover:text-bronze">Wardrobe <ChevronRight size={14} /></button>
-                  </div>
                 </div>
-                              </div>
+                <div className="mt-4 flex max-w-[600px] flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs text-muted">
+                  <span className="inline-flex items-center gap-2"><Shirt size={16} className="text-bronze" aria-hidden="true" />{wardrobeContextLabel}</span>
+                  <button type="button" onClick={() => setActive("Wardrobe")} className="inline-flex min-h-11 items-center gap-1 font-semibold text-forest hover:text-bronze">Manage wardrobe <ChevronRight size={14} aria-hidden="true" /></button>
+                </div>
+              </div>
+              <div className="desktop-editorial-visual relative min-h-[580px] overflow-hidden bg-forest text-ivory">
+                <Image
+                  src="/stylebender-hero-campaign.jpg"
+                  alt="Man wearing considered green tailoring"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 45vw, 100vw"
+                  className="absolute inset-0 object-cover object-[82%_center] xl:object-[65%_center]"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-forest/85 via-transparent to-forest/5" />
+                <div className="pointer-events-none absolute bottom-8 left-8 right-8 border-t border-ivory/40 pt-4 xl:bottom-12 xl:left-12 xl:right-12">
+                  <span className="eyebrow text-bronze">THE STYLEBENDER EDIT</span>
+                  <p className="serif mt-2 max-w-[360px] text-2xl leading-tight xl:text-3xl">Dress for the moment. Keep your own style.</p>
+                </div>
+              </div>
             </section>
 
             </main>
