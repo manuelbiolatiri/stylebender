@@ -369,7 +369,7 @@ export default function Home() {
                   fill
                   priority
                   sizes="(min-width: 1024px) 45vw, 100vw"
-                  className="absolute inset-0 object-cover object-[65%_center]"
+                  className="absolute inset-0 object-cover object-[82%_center] xl:object-[65%_center]"
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-forest/85 via-transparent to-forest/5" />
                 <div className="pointer-events-none absolute bottom-8 left-8 right-8 border-t border-ivory/40 pt-4 xl:bottom-12 xl:left-12 xl:right-12">
