@@ -1,6 +1,7 @@
 import { createSign } from "node:crypto";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { providerErrorMessage, VIRTUAL_TRYON_PARAMETERS } from "@/lib/try-on-provider";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -100,13 +101,18 @@ export async function POST(request: Request) {
           personImage: { image: person },
           productImages: [{ image: garment }],
         }],
-        parameters: { sampleCount: 1, addWatermark: true, personGeneration: "allow_adult",
-          outputOptions: { mimeType: "image/jpeg", compressionQuality: 82 } },
+        parameters: VIRTUAL_TRYON_PARAMETERS,
       }),
     });
     if (!response.ok) {
-      console.error("[TryOn] provider error", { status: response.status });
-      return error(response.status === 429 ? "Provider quota exceeded. Try later." : "Provider could not generate a preview.", response.status === 429 ? 429 : 502);
+      // Provider error bodies may include sensitive request context. Do not log them.
+      const upstream = await response.json().catch(() => null) as { error?: { status?: unknown } } | null;
+      const code = typeof upstream?.error?.status === "string" &&
+        /^[A-Z_]{1,48}$/.test(upstream.error.status)
+        ? upstream.error.status : "UNKNOWN";
+      console.error("[TryOn] provider error", { httpStatus: response.status, code, model: MODEL, region });
+      const message = providerErrorMessage(response.status);
+      return error(message, response.status === 429 ? 429 : 502);
     }
     const result = await response.json() as {
       predictions?: Array<{ mimeType?: string; bytesBase64Encoded?: string }>;
