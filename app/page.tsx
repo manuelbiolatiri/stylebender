@@ -141,6 +141,7 @@ function Nav({
 
 export default function Home() {
   const [active, setActiveState] = useState("Discover");
+  const [tryOnWardrobeId, setTryOnWardrobeId] = useState<string | null>(null);
   const [selected, setSelectedState] = useState("");
   const [customOccasion, setCustomOccasion] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -163,6 +164,7 @@ export default function Home() {
   function setActive(next: string, replace = false, occasionOverride?: string) {
     if (screenRef.current) scrollPositions.current[active] = screenRef.current.scrollTop;
     setActiveState(next);
+    if (next !== "Try On") setTryOnWardrobeId(null);
     if (typeof window !== "undefined") {
       const params = new URLSearchParams();
       if (next !== "Discover") params.set("view", next === "Style Me" ? "Style Me" : next);
@@ -581,6 +583,8 @@ export default function Home() {
           <Placeholder
             active={active}
             setActive={setActive}
+            tryOnWardrobeId={tryOnWardrobeId}
+            onTryOnWardrobeItem={(id) => { setActive("Try On"); setTryOnWardrobeId(id); }}
             setSelected={setSelected}
             context={{ ...profileContext, occasion: selected }}
             sessionEmail={sessionEmail}
@@ -602,6 +606,8 @@ export default function Home() {
 function Placeholder({
   active,
   setActive,
+  tryOnWardrobeId,
+  onTryOnWardrobeItem,
   setSelected,
   context,
   sessionEmail,
@@ -610,6 +616,8 @@ function Placeholder({
 }: {
   active: string;
   setActive: (x: string, replace?: boolean, occasionOverride?: string) => void;
+  tryOnWardrobeId: string | null;
+  onTryOnWardrobeItem: (id: string) => void;
   setSelected: (occasion: string) => void;
   context: OutfitContext;
   sessionEmail?: string;
@@ -637,7 +645,7 @@ function Placeholder({
       <h1 aria-label={active === "Style Me" ? "Style Me" : undefined} className={`serif mt-3 mobile-panel-title ${active === "Wardrobe" || active === "Profile" ? "text-4xl md:text-6xl" : "text-5xl md:text-6xl"}`}>{active === "Style Me" ? "My Look" : active}</h1>
 
       {active === "Wardrobe" ? (
-        <WardrobePanel />
+        <WardrobePanel onTryOn={onTryOnWardrobeItem} />
       ) : active === "Profile" ? (
         <StyleProfilePanel email={sessionEmail} />
       ) : active === "Style Me" || active === "Verdict" ? (
@@ -652,7 +660,7 @@ function Placeholder({
       ) : active === "Elevate" ? (
         <ElevatePanel onReturnToLook={() => setActive("Style Me")} />
       ) : active === "Try On" ? (
-        <TryOnPanel />
+        <TryOnPanel initialWardrobeId={tryOnWardrobeId} />
       ) : active === "Style IQ" ? (
         <StyleIQPanel />
       ) : active === "Saved" ? (
