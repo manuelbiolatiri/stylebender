@@ -24,7 +24,7 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 768
   test(`direct occasion styling is accessible at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/?view=Discover');
-    await expect(page.getByRole('heading', { name: /What are you dressing for|A look for every occasion/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /What are you dressing for|A considered look/i })).toBeVisible();
     // Both responsive variants exist in the DOM. Select the actively displayed form.
     const input = page.locator(viewport.width < 1024 ? '#mobile-occasion' : '#desktop-occasion');
     await expect(input).toBeVisible();
