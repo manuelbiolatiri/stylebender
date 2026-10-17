@@ -1,4 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+// The gate runs before authentication; mock it to isolate the paid-call switch.
+// Avoid importing NextAuth's server runtime in a Vitest unit environment.
+vi.mock("@/auth", () => ({ auth: vi.fn() }));
+
 import { POST } from "../app/api/try-on/route";
 
 describe("virtual try-on paid-provider switch", () => {
