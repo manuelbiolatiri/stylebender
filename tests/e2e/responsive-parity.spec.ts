@@ -46,7 +46,9 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 768
     }, sampleOutfit);
 
     await page.goto('/?view=Style%20Me&occasion=Date%20Night');
-    await expect(page.getByRole('heading', { name: /My Look/i })).toBeVisible();
+    const lookHeading = page.getByRole('heading', { name: 'Style Me' });
+    await expect(lookHeading).toBeVisible();
+    await expect(lookHeading).toHaveText('My Look');
     await expect(page.getByText('The evening tonal contrast')).toBeVisible();
     await expect(page.getByRole('button', { name: /Change a piece/i })).toBeVisible();
     await page.screenshot({ path: `test-results/responsive/my-look-${viewport.width}.png`, fullPage: true });
